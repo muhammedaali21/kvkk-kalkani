@@ -243,7 +243,7 @@ async function doFile() {
   $("fileErr").hidden = true;
   if (!f) { $("fileErr").textContent = "Önce bir dosya seçin."; $("fileErr").hidden = false; return; }
   const fd = new FormData();
-  fd.append("file", f); fd.append("session", SESSION); fd.append("use_llm", "false");
+  fd.append("file", f); fd.append("session", SESSION); fd.append("use_llm", $("useLlm").checked ? "true" : "false");
   try {
     const r = await fetch(API + "/mask-file", { method: "POST", body: fd });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
