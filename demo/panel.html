@@ -312,7 +312,7 @@
 <script>
 const API = location.origin.startsWith("http") ? location.origin : "http://127.0.0.1:8765";
 const TYPE = {
-  TC: "T.C. kimlik numarası", IBAN: "IBAN", KART: "Kart numarası", VKN: "Vergi kimlik numarası",
+  TC: "T.C. kimlik numarası", DOGUM_TARIHI: "Doğum tarihi", DOGUM_YERI: "Doğum yeri", IBAN: "IBAN", KART: "Kart numarası", VKN: "Vergi kimlik numarası",
   EPOSTA: "E-posta adresi", TELEFON: "Telefon numarası", PLAKA: "Araç plakası", ADRES: "Açık adres",
   KISI: "Kişi adı", KURUM_KISI: "Dolaylı kimlik bilgisi", SAGLIK: "Sağlık verisi", DIN_INANC: "Din / inanç",
   SIYASI: "Siyasi görüş", SENDIKA: "Sendika üyeliği", CEZA: "Ceza mahkûmiyeti", BIYOMETRIK: "Biyometrik veri",
@@ -320,7 +320,7 @@ const TYPE = {
 };
 const CATS = {
   m6:     { label: "Özel nitelikli (md. 6)", color: "#a8413c", rank: 0, types: ["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"] },
-  kimlik: { label: "Kimlik / finansal",      color: "#1b1b1a", rank: 1, types: ["TC", "IBAN", "KART", "VKN"] },
+  kimlik: { label: "Kimlik / finansal",      color: "#1b1b1a", rank: 1, types: ["TC", "DOGUM_TARIHI", "DOGUM_YERI", "IBAN", "KART", "VKN"] },
   kisi:   { label: "Kişi / iletişim",        color: "#8a8378", rank: 2, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
   ticari: { label: "Ticari bilgi",           color: "#a07a3c", rank: 3, types: ["TICARI_SIR", "SOZLUK"] },
 };

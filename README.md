@@ -22,7 +22,8 @@ The model that cleans the data has to *see* the data. That job, by definition, c
 | Layer | Finds | How |
 |---|---|---|
 | 1. Regex + validation | Turkish ID (TC), IBAN, tax no (VKN), card, phone, e-mail, plate, address | Pattern + checksum (TC algorithm, IBAN mod-97, VKN, Luhn). Numbers that fail validation — order numbers, invoice numbers — are **not** masked. |
-| 1b. Name list | "Ahmet Yılmaz", "Ayşe Hanım" | ~150 common Turkish first names + surname pattern. Works without the LLM. |
+| 1b. Name list | "Ahmet Yılmaz", "Ayşe Hanım" | ~200 common Turkish first names + surname pattern (same line, same letter case). Works without the LLM. |
+| 1d. Form fields | "Adı : …", "Doğum Tarihi : …", "Baba Adı : …" | Official documents (SGK, e-Devlet, bank forms) put values next to known labels. The value is masked because of its label, even if the name is not in the list or the number fails validation. Document dates are left alone. |
 | 1c. Company dictionary | Client names, secret project names | Terms the compliance officer enters in the admin panel. |
 | 2. Gemma 4 (local) | People, indirect identifiers, KVKK Art. 6 data, trade secrets | Ollama `/api/chat`, JSON mode, temperature 0. Any phrase the model returns that doesn't appear verbatim in the text is dropped (hallucination guard). |
 
@@ -39,10 +40,10 @@ Full per-type table: [benchmark/results.md](benchmark/results.md). Gemma 4 = `ge
 | | Regex only | + Name list | + Gemma 4 (local) |
 |---|---|---|---|
 | Recall (IDs, IBAN, card, phone, e-mail, plate, address) | 100% | 100% | 100% |
-| Recall (people) | 0% | 59% | 97% |
+| Recall (people) | 0% | 63% | 97% |
 | Recall (health / religion / politics / union / criminal) | 0% | 0% | 100% |
 | Recall (trade secrets) | 0% | 0% | 100% |
-| **Overall recall** | 40% | 63% | **99%** |
+| **Overall recall** | 40% | 65% | **99%** |
 | Precision | 100% | 100% | 96% |
 | Unnecessary masks (of 100 samples) | 0 | 0 | 12 |
 | Avg. time / sample | <1 ms | <1 ms | ~480 ms |

@@ -182,10 +182,17 @@ def detect_names(text: str) -> list[Finding]:
             i += 1
             continue
 
+        first_upper = tok.group(0).isupper()
+
         def adjacent(j: int) -> bool:
-            return j < len(tokens) and text[tokens[j - 1].end(): tokens[j].start()].isspace() and (
-                tokens[j].start() - tokens[j - 1].end() <= 2
-            )
+            """Sonraki kelime aynı satırda, hemen bitişikte ve aynı yazım biçiminde mi?
+            ("YİĞİT\\nBaba Adı" gibi satır atlayan ya da "MAHMUT Sosyal" gibi biçimi tutmayan eşleşmeler reddedilir.)"""
+            if j >= len(tokens):
+                return False
+            gap = text[tokens[j - 1].end(): tokens[j].start()]
+            if not gap or not gap.isspace() or "\n" in gap or "\r" in gap or len(gap) > 2:
+                return False
+            return tokens[j].group(0).isupper() == first_upper
 
         end_idx = i
         # İkinci ad (ör. "Ayşe Nur").
@@ -211,6 +218,44 @@ def detect_names(text: str) -> list[Finding]:
         start, end = tok.start(), tokens[end_idx].end()
         out.append(Finding(start, end, "KISI", text[start:end], "isim"))
         i = end_idx + 1
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Katman 1d: form alanları ("Etiket : Değer")
+# ---------------------------------------------------------------------------
+# Resmî yazılarda (SGK, e-Devlet, nüfus, banka formları) değerler etiketle birlikte durur.
+# Etiket bilindiği için değer, isim listesinde olmasa ya da doğrulamadan geçmese bile gizlenir.
+# Sıra önemlidir: uzun etiketler önce denenir ("Baba Adı" → "Adı"dan önce).
+_FORM_FIELDS: list[tuple[str, str]] = [
+    (r"T\.?\s*C\.?\s*Kimlik\s*(?:No|Numarası)|T\.?\s*C\.?\s*No|TCKN|Kimlik\s*(?:No|Numarası)", "TC"),
+    (r"Ad[ıi]\s*Soyad[ıi]|Ad\s*Soyad|Baba\s*Ad[ıi]|Anne\s*Ad[ıi]|Ana\s*Ad[ıi]|Eşinin\s*Ad[ıi]"
+     r"|Kızlık\s*Soyad[ıi]|Önceki\s*Soyad[ıi]|Soyad[ıi]|Soyad|Ad[ıi]|Ad", "KISI"),
+    (r"Doğum\s*Tarihi", "DOGUM_TARIHI"),
+    (r"Doğum\s*Yeri", "DOGUM_YERI"),
+    (r"(?:Cep\s*)?Telefon(?:\s*(?:No|Numarası))?|GSM(?:\s*No)?", "TELEFON"),
+    (r"E-?\s?posta(?:\s*Adresi)?|E-?\s?mail", "EPOSTA"),
+    (r"(?:İkamet(?:gâh|gah)?\s*|Yerleşim\s*Yeri\s*|Ev\s*|İş\s*)?Adres(?:i)?", "ADRES"),
+    (r"IBAN(?:\s*(?:No|Numarası))?", "IBAN"),
+    (r"Kan\s*Grubu", "SAGLIK"),
+]
+_FORM_LABEL = "|".join(f"(?P<f{i}>{p})" for i, (p, _) in enumerate(_FORM_FIELDS))
+# Etiket satır başında; ':' aynı satırda ya da (PDF'lerde sık görüldüğü gibi) bir alt satırda olabilir.
+FORM_RE = re.compile(
+    rf"(?im)^[ \t]*(?:{_FORM_LABEL})[ \t]*\n?[ \t]*:[ \t]*\n?[ \t]*(?P<value>[^\n]{{1,80}}?)[ \t]*$"
+)
+_ANY_LABEL_RE = re.compile(rf"(?i)^(?:{'|'.join(p for p, _ in _FORM_FIELDS)}|Sayı|Konu|Tarih)\b")
+
+
+def detect_form_fields(text: str) -> list[Finding]:
+    out: list[Finding] = []
+    for m in FORM_RE.finditer(text):
+        value = m.group("value")
+        # Değer boşsa regex bir sonraki satırı (çoğu zaman başka bir etiketi) yakalar; bunu ele.
+        if not value.strip(" :.-") or _ANY_LABEL_RE.match(value):
+            continue
+        typ = next(t for i, (_, t) in enumerate(_FORM_FIELDS) if m.group(f"f{i}"))
+        out.append(Finding(m.start("value"), m.end("value"), typ, value, "form"))
     return out
 
 

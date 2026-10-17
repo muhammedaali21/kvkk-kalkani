@@ -16,7 +16,9 @@ serkan hakan kadir yasin orhan erkan volkan gökhan cem tolga onur oğuz selim
 sinan tuncay levent kenan metin cengiz erdem kerem berk arda efe eren kaan
 mert emir furkan enes yiğit batuhan doğan tamer uğur sercan özgür caner engin
 adem bayram cemal erol nihat yunus zafer serdar ilker taner barış umut deniz
-can
+can muhammed muhammet ahmed mehmed safa yiğit eyüp eyup hamza bilal talha
+ömer faruk abdurrahman abdulkadir şükrü ferhat fırat cihan alper koray tuncay
+erkan sefa samet semih tayfun hüsnü necati rıza şahin tarık hakkı şevket
 """
 
 _KADIN = """
@@ -25,6 +27,7 @@ ayşe fatma emine hatice zeynep elif meryem şerife sultan zehra hanife merve
 filiz gamze aslı burcu pınar seda gülsüm leyla nesrin songül sevim aynur canan
 nurcan selin ece irem damla buse cansu ceren defne ela nil sude tuana yağmur
 kübra rabia sema şule tülay yeliz neslihan hande gül nur bahar dilara azra
+esma havva hacer saadet nazlı gülşen sinem özge tuba esin şeyma beyza
 """
 
 FIRST_NAMES: frozenset[str] = frozenset((_ERKEK + _KADIN).split())

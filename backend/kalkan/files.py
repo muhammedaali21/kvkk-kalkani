@@ -296,6 +296,32 @@ def mask_docx(engine: Engine, data: bytes, job: Job) -> tuple[bytes, dict]:
 # PDF
 # ---------------------------------------------------------------------------
 
+def _pdf_page_text(page) -> str:
+    """Sayfadaki kelimeleri görsel satırlara göre yeniden birleştirir.
+
+    PDF'lerde etiket, ':' ve değer çoğu zaman ayrı ayrı yazılır; düz metin çıkarımı bunları ayrı satırlara
+    böler ("Adı\\n:\\nMUHAMMED SAFA"). Aynı yükseklikteki kelimeleri soldan sağa birleştirmek okuma
+    sırasını belgedeki gibi yapar: "Adı : MUHAMMED SAFA".
+    """
+    words = page.get_text("words")  # (x0, y0, x1, y1, kelime, blok, satır, sıra)
+    if not words:
+        return ""
+    words.sort(key=lambda w: ((w[1] + w[3]) / 2, w[0]))
+    lines: list[list] = []
+    current: list = []
+    current_y = 0.0
+    for w in words:
+        y, height = (w[1] + w[3]) / 2, w[3] - w[1]
+        if current and abs(y - current_y) > max(2.5, height * 0.45):
+            lines.append(current)
+            current = []
+        if not current:
+            current_y = y
+        current.append(w)
+    lines.append(current)
+    return "\n".join(" ".join(w[4] for w in sorted(line, key=lambda w: w[0])) for line in lines)
+
+
 def mask_pdf(engine: Engine, data: bytes, job: Job) -> tuple[bytes, dict]:
     """Gerçek karartma: gizlenen metin PDF'ten silinir, yerine etiket yazılır.
 
@@ -310,7 +336,7 @@ def mask_pdf(engine: Engine, data: bytes, job: Job) -> tuple[bytes, dict]:
     if doc.needs_pass:
         raise ValueError("Parola korumalı PDF'ler işlenemez. Parolayı kaldırıp tekrar yükleyin.")
 
-    texts = [page.get_text() for page in doc]
+    texts = [_pdf_page_text(page) for page in doc]
     if not any(t.strip() for t in texts):
         raise ValueError("PDF'te seçilebilir metin yok; taranmış (görüntü) bir belge olabilir. "
                          "Bu sürüm yalnızca metin içeren PDF'leri karartır.")

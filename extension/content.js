@@ -4,7 +4,7 @@
   const HAS_TAG = /\[[A-Z][A-Z_]*_\d+\]/;
   const EDITABLE = '[contenteditable="true"], textarea';
   const LABELS = {
-    TC: "TC", IBAN: "IBAN", KART: "kart", VKN: "vergi no", EPOSTA: "e-posta", TELEFON: "telefon",
+    TC: "TC", DOGUM_TARIHI: "doğum tarihi", DOGUM_YERI: "doğum yeri", IBAN: "IBAN", KART: "kart", VKN: "vergi no", EPOSTA: "e-posta", TELEFON: "telefon",
     PLAKA: "plaka", ADRES: "adres", KISI: "kişi", KURUM_KISI: "dolaylı kimlik", SAGLIK: "sağlık",
     DIN_INANC: "din/inanç", SIYASI: "siyasi", SENDIKA: "sendika", CEZA: "ceza", BIYOMETRIK: "biyometrik",
     TICARI_SIR: "ticari sır", SOZLUK: "şirket sözlüğü",

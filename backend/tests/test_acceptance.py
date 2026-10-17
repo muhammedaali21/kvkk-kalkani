@@ -120,6 +120,49 @@ def test_file_review_and_selection():
     assert rep["toplam"] == 2, rep
 
 
+def test_form_fields_and_names_do_not_cross_lines():
+    from kalkan.detectors import detect_names
+    e = _engine()
+    # Resmî belge düzeni (uydurma veri): etiket, ':' ve değer ayrı satırlarda da olabilir.
+    split = "Adı\n:\nMUHAMMED SAFA\nSoyadı\n:\nYİĞİT\nBaba Adı\n:\nMAHMUT\nDoğum Tarihi\n:\n23.01.2007\nSosyal Güvenlik Kurumu"
+    same = "T.C. Kimlik No : 12345678950\nAdı : MUHAMMED SAFA\nSoyadı : YİĞİT\nDoğum Yeri : BATMAN\nSayı :\nKonu : Tespit\nTarih: 10.10.2026"
+    for text in (split, same):
+        r = e.mask(text, session="form", use_llm=False)
+        got = {(f["type"], f["value"]) for f in r["findings"]}
+        assert ("KISI", "MUHAMMED SAFA") in got and ("KISI", "YİĞİT") in got, got
+        assert not any("\n" in v for _, v in got), got  # hiçbir değer satır atlamamalı
+    assert ("DOGUM_TARIHI", "23.01.2007") in {(f["type"], f["value"]) for f in e.mask(split, session="f", use_llm=False)["findings"]}
+    r = e.mask(same, session="g", use_llm=False)
+    assert "10.10.2026" in r["masked"] and "Tespit" in r["masked"]  # belge tarihi ve konu gizlenmez
+    assert "BATMAN" not in r["masked"]
+    # İsim tespiti: "YİĞİT\nBaba" ve "MAHMUT Sosyal" birleştirilmemeli.
+    assert all("\n" not in f.value for f in detect_names("Soyadı\nYİĞİT\nBaba Adı\nMAHMUT Sosyal Güvenlik"))
+    assert [f.value for f in detect_names("AHMET Yılmaz geldi")] == []  # biçim tutmuyor, tek büyük harfli kelime
+
+
+def test_official_pdf_sample():
+    from kalkan.files import mask_file
+    import pymupdf
+    sample = Path(__file__).resolve().parents[2] / "ornek" / "resmi_belge.pdf"
+    if not sample.exists():
+        print("  (ornek/resmi_belge.pdf yok — python ornek/olustur.py ile üretin; test atlandı)")
+        return
+    e = _engine()
+    out, _, rep = mask_file(e, "r.pdf", sample.read_bytes(), "pdf", False, record=False)
+    text = "\n".join(p.get_text() for p in pymupdf.open(stream=out, filetype="pdf"))
+    for secret in ("12345678950", "MUHAMMED", "YİĞİT", "MAHMUT", "BATMAN", "23.01.2007"):
+        assert secret not in text, secret
+    assert "10.10.2026" in text and rep["kalan"] == 0
+
+
+def test_policy_new_types_default_on():
+    import json, tempfile as _t
+    d = Path(_t.mkdtemp())
+    (d / "politika.json").write_text(json.dumps({"turler": ["TC", "KISI"]}), encoding="utf-8")  # eski biçim
+    e = Engine(d)
+    assert "DOGUM_TARIHI" in e.policy.types and "IBAN" not in e.policy.types
+
+
 def test_stats_have_no_raw_data():
     e = _engine()
     e.mask(ORNEK, session="x", use_llm=False)

@@ -124,6 +124,39 @@ def pdf_dilekce(path: Path) -> None:
     doc.save(path, garbage=3, deflate=True)
 
 
+# --------------------------------------------------------------------------- Resmî belge (form düzeni)
+def pdf_resmi_belge(path: Path) -> None:
+    """e-Devlet / SGK yazılarına benzer form düzeni: etiket, ':' ve değer PDF'te ayrı ayrı yazılır.
+    Kurum adı uydurmadır ve kişi bilgileri tamamen sahtedir; gerçek bir belgenin kopyası değildir."""
+    import pymupdf
+
+    reg, bold = "C:/Windows/Fonts/times.ttf", "C:/Windows/Fonts/timesbd.ttf"
+    doc = pymupdf.open()
+    page = doc.new_page()
+
+    def put(x, y, s, b=False, size=11):
+        page.insert_text((x, y), s, fontsize=size, fontname="tb" if b else "tr", fontfile=bold if b else reg)
+
+    for i, line in enumerate(["T.C.", "ÖRNEK KAMU KURUMU BAŞKANLIĞI", "ÖRNEK HİZMETLER GENEL MÜDÜRLÜĞÜ"]):
+        put(170 + (60 if i == 0 else 0), 50 + i * 16, line, True, 12)
+    put(470, 120, "10.10.2026")
+    put(40, 150, "Sayı", True); put(140, 150, ":")
+    put(40, 166, "Konu", True); put(140, 166, ":"); put(152, 166, "Sigortalılık Tescil Kaydı Tespiti")
+    put(240, 196, "İLGİLİ MAKAMA")
+    rows = [("T.C. Kimlik No", "12345678950"), ("Adı", "MUHAMMED SAFA"), ("Soyadı", "YİĞİT"),
+            ("Baba Adı", "MAHMUT"), ("Doğum Yeri", "BATMAN"), ("Doğum Tarihi", "23.01.2007")]
+    for k, (label, value) in enumerate(rows):
+        y = 226 + k * 16
+        put(40, y, label, True); put(140, y, ":"); put(152, y, value)
+    put(60, 340, "Kurum kayıtlarının incelenmesinde, yukarıda kimlik bilgileri bulunan şahsın 5510 sayılı")
+    put(40, 356, "Kanunun 4 üncü maddesine tabi sigortalılığının bulunmadığı tespit edilmiştir.")
+    put(60, 372, "Bilgi edinilmesini arz ederim.")
+    put(40, 700, "Not: Bu belge sorgulama zamanı olan 10.10.2026 19:34:42 itibariyle düzenlenmiştir.", size=8)
+    doc.subset_fonts()
+    doc.save(path, garbage=3, deflate=True)
+
+
 word_sozlesme(out / "sozlesme.docx")
 pdf_dilekce(out / "dilekce.pdf")
-print("sozlesme.docx ve dilekce.pdf oluşturuldu.")
+pdf_resmi_belge(out / "resmi_belge.pdf")
+print("sozlesme.docx, dilekce.pdf ve resmi_belge.pdf oluşturuldu.")

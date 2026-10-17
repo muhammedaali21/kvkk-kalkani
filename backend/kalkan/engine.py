@@ -14,12 +14,12 @@ from datetime import date
 from pathlib import Path
 
 from . import llm
-from .detectors import Finding, detect_dictionary, detect_names, detect_regex
+from .detectors import Finding, detect_dictionary, detect_form_fields, detect_names, detect_regex
 from .names import tr_lower
 
 PRIORITY = {
     "TC": 100, "IBAN": 100, "KART": 100,
-    "VKN": 90, "EPOSTA": 80, "TELEFON": 70, "PLAKA": 60,
+    "VKN": 90, "DOGUM_TARIHI": 85, "EPOSTA": 80, "TELEFON": 70, "PLAKA": 60, "DOGUM_YERI": 45,
     "SOZLUK": 50, "ADRES": 40, "KISI": 30,
     "KURUM_KISI": 20, "SAGLIK": 20, "DIN_INANC": 20, "SIYASI": 20,
     "SENDIKA": 20, "CEZA": 20, "BIYOMETRIK": 20,
@@ -141,21 +141,35 @@ class Sozluk:
         return clean
 
 
+# Politika dosyasının ilk sürümünden sonra eklenen türler (eski kayıtlarda yer almadıkları için açık sayılır).
+_ADDED_LATER = {"DOGUM_TARIHI", "DOGUM_YERI"}
+
+
 class Policy:
-    """Şirket genelinde hangi veri türlerinin gizleneceği. Varsayılan: hepsi."""
+    """Şirket genelinde hangi veri türlerinin gizleneceği. Varsayılan: hepsi.
+
+    Dosyada KAPALI türler saklanır; böylece sonradan eklenen yeni türler mevcut kurulumlarda
+    sessizce kapalı kalmaz, varsayılan olarak gizlenir.
+    """
 
     def __init__(self, path: Path) -> None:
         self.path = path
+        off: set[str] = set()
         try:
-            saved = json.loads(path.read_text(encoding="utf-8")).get("turler")
-            self.types: list[str] = [t for t in saved if t in PRIORITY] if isinstance(saved, list) else list(PRIORITY)
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(saved.get("kapali"), list):
+                off = set(saved["kapali"])
+            elif isinstance(saved.get("turler"), list):  # eski biçim: açık türler listesi
+                off = {t for t in PRIORITY if t not in saved["turler"] and t not in _ADDED_LATER}
         except Exception:
-            self.types = list(PRIORITY)
+            pass
+        self.types: list[str] = [t for t in PRIORITY if t not in off]
 
     def set(self, types: list[str]) -> list[str]:
         self.types = [t for t in PRIORITY if t in set(types)]  # sabit sırada sakla
+        off = [t for t in PRIORITY if t not in self.types]
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps({"turler": self.types}, ensure_ascii=False, indent=2), encoding="utf-8")
+        self.path.write_text(json.dumps({"kapali": off}, ensure_ascii=False, indent=2), encoding="utf-8")
         return self.types
 
 
@@ -190,6 +204,7 @@ class Engine:
         findings: list[Finding] = []
         if use_regex:
             findings += detect_regex(text)
+            findings += detect_form_fields(text)
             findings += detect_dictionary(text, self.sozluk.terms)
         if use_names:
             findings += detect_names(text)
