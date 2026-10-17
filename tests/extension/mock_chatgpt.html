@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="tr">
+<head><meta charset="utf-8"><title>Sahte ChatGPT</title>
+<style>#prompt-textarea { min-height: 60px; border: 1px solid #ccc; padding: 8px; }</style></head>
+<body>
+<!-- ChatGPT'nin DOM yapısını taklit eder: ProseMirror editör + send-button. Sadece test içindir. -->
+<main id="thread"></main>
+<form id="composer">
+  <div id="prompt-textarea" class="ProseMirror" contenteditable="true"><p></p></div>
+  <button type="button" data-testid="send-button" aria-label="Send prompt">Gönder</button>
+</form>
+<script>
+  window.__sent = [];
+  const ed = document.getElementById("prompt-textarea");
+  const thread = document.getElementById("thread");
+
+  // ProseMirror gibi: yapıştırmayı kendisi işler, her satırı ayrı <p> yapar.
+  ed.addEventListener("paste", (e) => {
+    const text = e.clipboardData.getData("text/plain");
+    e.preventDefault();
+    ed.innerHTML = text.split("\n").map((l) => `<p>${l.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p>`).join("");
+  });
+
+  function editorText() {
+    return [...ed.children].map((p) => p.textContent).join("\n");
+  }
+
+  function submit() {
+    const text = editorText();
+    if (!text.trim()) return;
+    window.__sent.push(text);
+    ed.innerHTML = "<p></p>";
+    const user = document.createElement("div");
+    user.className = "user-msg";
+    user.textContent = text;
+    thread.appendChild(user);
+    // Asistan cevabı parça parça "akar" (streaming); etiketler parçalara bölünebilir.
+    const reply = document.createElement("div");
+    reply.className = "assistant-msg";
+    const p = document.createElement("p");
+    reply.appendChild(p);
+    thread.appendChild(reply);
+    const tags = text.match(/\[[A-Z][A-Z_]*_\d+\]/g) || [];
+    const full = `Merhaba ${tags[0] || "müşterimiz"}, talebiniz alındı. ${tags.slice(1).join(" ")}`;
+    let i = 0;
+    const timer = setInterval(() => {
+      i = Math.min(full.length, i + 7);
+      p.textContent = full.slice(0, i);
+      if (i >= full.length) { clearInterval(timer); reply.dataset.done = "1"; }
+    }, 30);
+  }
+
+  document.querySelector('[data-testid="send-button"]').addEventListener("click", submit);
+  ed.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
+  });
+</script>
+</body>
+</html>
