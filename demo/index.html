@@ -213,6 +213,33 @@
   .chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
   .chip { font-size: 12px; padding: 1px 8px; border-radius: 4px; background: var(--bg); border: 1px solid var(--border); color: var(--text); }
 
+  /* ---------------------------------------------------------------- veri türü filtresi */
+  .filter { margin: 0 0 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+  .filter summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 48px; cursor: pointer; flex-wrap: wrap; }
+  .filter summary::-webkit-details-marker { display: none; }
+  .filter[open] summary { border-bottom: 1px solid var(--border); }
+  .filter .ft-t { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; }
+  .filter .ft-c { color: var(--text-2); font-size: 13px; }
+  .filter .ft-c b { color: var(--text); font-weight: 600; }
+  .filter .ft-src { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); border: 1px solid var(--border); padding: 2px 8px; border-radius: 3px; }
+  .filter .ft-src.custom { color: var(--warning-text); border-color: #e3d3b4; background: var(--warning-soft); }
+  .filter .chev { margin-left: auto; transition: transform var(--ease); }
+  .filter[open] .chev { transform: rotate(180deg); }
+  .ft-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ft-grp { padding: 14px 16px 12px; min-width: 0; }
+  .ft-grp + .ft-grp { border-left: 1px solid var(--border); }
+  .ft-grp > .chk { font-weight: 600; font-size: 12.5px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--border); }
+  .ft-grp.m6 > .chk { color: var(--danger-text); }
+  .chk { display: flex; align-items: center; gap: 9px; padding: 4px 0; font-size: 13.5px; cursor: pointer; user-select: none; }
+  .chk.off { color: var(--text-2); }
+  input.cb { appearance: none; margin: 0; width: 15px; height: 15px; border: 1px solid var(--border-2); border-radius: 2px; background: var(--surface); display: grid; place-items: center; flex: none; cursor: pointer; transition: background var(--ease), border-color var(--ease); }
+  input.cb:checked, input.cb:indeterminate { background: var(--navy); border-color: var(--navy); }
+  input.cb:checked::after { content: ""; width: 8px; height: 4px; border-left: 1.6px solid #fff; border-bottom: 1.6px solid #fff; transform: translateY(-1px) rotate(-45deg); }
+  input.cb:indeterminate::after { content: ""; width: 7px; height: 1.6px; background: #fff; }
+  .ft-foot { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--border); background: var(--surface-2); font-size: 13px; flex-wrap: wrap; border-radius: 0 0 var(--r) var(--r); }
+  .ft-foot .warn { color: var(--danger-text); display: inline-flex; gap: 8px; align-items: center; }
+  .ft-foot .acts { margin-left: auto; display: flex; gap: 16px; }
+
   footer.foot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 24px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-3); }
 
   /* ---------------------------------------------------------------- duyarlı */
@@ -252,6 +279,14 @@
     .tbl td:nth-child(n+3) { grid-column: 1 / -1; }
     .tbl td[colspan] { grid-column: 1 / -1; }
     .tbl td.hide-sm { display: none; }
+    .ft-grid { grid-template-columns: 1fr; }
+    .ft-grp + .ft-grp { border-left: 0; border-top: 1px solid var(--border); }
+    .ft-foot .acts { margin-left: 0; }
+  }
+  @media (min-width: 881px) and (max-width: 1180px) {
+    .ft-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ft-grp:nth-child(3) { border-left: 0; }
+    .ft-grp:nth-child(n+3) { border-top: 1px solid var(--border); }
   }
   .sm-only { display: none; }
   @media (max-width: 880px) { .sm-only { display: inline; } }
@@ -270,6 +305,8 @@
   <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></symbol>
   <symbol id="i-menu" viewBox="0 0 16 16"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></symbol>
   <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 16 16"><path d="M2.5 3.5h11l-4.2 5v4l-2.6 1.3V8.5z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></symbol>
   <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 3v7.5M5 7.5l3 3 3-3M3 13h10"/></symbol>
 </svg>
 <template id="logo-mark"><span class="mark" aria-hidden="true">K</span></template>
@@ -288,6 +325,7 @@
       <a href="/uygulama#dosya" data-view="dosya"><svg class="i"><use href="#i-file"/></svg>Dosya gizleme</a>
       <div class="grp">Yönetim</div>
       <a href="/panel"><svg class="i"><use href="#i-chart"/></svg>Genel bakış</a>
+      <a href="/panel#politika"><svg class="i"><use href="#i-filter"/></svg>Gizleme politikası</a>
       <a href="/panel#sozluk"><svg class="i"><use href="#i-book"/></svg>Şirket sözlüğü</a>
     </nav>
     <div class="env" aria-live="polite">
@@ -320,6 +358,8 @@
           <li><span><b>Gizlenmiş metni gönder</b><small>Yapay zekâ yalnızca etiketleri görür</small></span></li>
           <li><span><b>Cevabı geri çevir</b><small>Etiketler gerçek değerlere döner</small></span></li>
         </ol>
+
+        <div class="filter-slot" data-view="mesaj"></div>
 
         <div class="panel work">
           <div class="col">
@@ -415,6 +455,8 @@
             <p>Müşteri listesi, sözleşme, dilekçe veya bordro gibi dosyaları yapay zekâ aracına yüklemeden önce buradan geçirin. Dosya aynı biçimde geri döner; aynı kişi her yerde aynı etiketi alır, tutar ve tarihler değişmez.</p>
           </div>
         </header>
+
+        <div class="filter-slot" data-view="dosya"></div>
 
         <div class="drop" id="drop" role="button" tabindex="0" aria-describedby="dropHint">
           <span class="ico"><svg class="i"><use href="#i-up"/></svg></span>
@@ -546,6 +588,7 @@ function show(view) {
   document.querySelectorAll(".menu a[data-view]").forEach((a) =>
     a.dataset.view === view ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   document.title = "Kalkan · " + (view === "dosya" ? "Dosya gizleme" : "Mesaj tarama");
+  document.querySelector(`.filter-slot[data-view="${view}"]`).appendChild(filterEl);
   store.set("kalkan.view", view);
   $("side").classList.remove("open"); $("menuBtn").setAttribute("aria-expanded", "false");
 }
@@ -607,7 +650,7 @@ async function scan() {
   selectTab(false);
   $("preview").innerHTML = `<div class="skel" aria-label="Taranıyor"><i style="width:92%"></i><i style="width:78%"></i><i style="width:85%"></i><i style="width:60%"></i></div>`;
   try {
-    const r = await api("/mask", { method: "POST", body: JSON.stringify({ text, session: SESSION, use_llm: $("useLlm").checked }) });
+    const r = await api("/mask", { method: "POST", body: JSON.stringify({ text, session: SESSION, use_llm: $("useLlm").checked, types: [...selected] }) });
     last = r;
     renderPreview(text, r.findings);
     $("outgoing").innerHTML = tagHtml(r.masked);
@@ -618,7 +661,8 @@ async function scan() {
     const sorted = [...uniq].sort((a, b) => catOf(a.type).rank - catOf(b.type).rank || a.start - b.start);
     const layers = new Set(r.findings.map((f) => f.source)).size;
     $("sTotal").textContent = fmt(r.findings.length);
-    $("sMeta").textContent = `${uniq.length} farklı değer · ${layers} katmanda yakalandı · ${fmt(Math.round(r.ms))} ms` + (r.llm_used ? "" : " · bağlamsal tarama kapalı");
+    $("sMeta").textContent = `${uniq.length} farklı değer · ${layers} katmanda yakalandı · ${fmt(Math.round(r.ms))} ms` + (r.llm_used ? "" : " · bağlamsal tarama kapalı")
+      + (r.excluded && r.excluded.length ? ` · ${r.excluded.length} tür filtre dışında` : "");
     renderDistribution(r.findings);
 
     const m6 = uniq.filter((f) => f.special);
@@ -682,6 +726,7 @@ async function maskFile(f) {
   $("dropTitle").textContent = `${f.name} işleniyor…`;
   const fd = new FormData();
   fd.append("file", f); fd.append("session", SESSION); fd.append("use_llm", $("useLlm").checked ? "true" : "false");
+  fd.append("types", [...selected].join(","));
   const t0 = performance.now();
   try {
     const r = await fetch(API + "/mask-file", { method: "POST", body: fd });
@@ -730,6 +775,74 @@ $("file").onchange = (e) => e.target.files[0] && maskFile(e.target.files[0]);
 ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
 drop.addEventListener("drop", (e) => e.dataTransfer.files[0] && maskFile(e.dataTransfer.files[0]));
 
+// ---------------------------------------------------------------- veri türü filtresi
+// Tek bir bileşen; hangi görünüm açıksa onun yuvasına taşınır. Başlangıç değeri şirket politikasıdır.
+const ALL_TYPES = Object.values(CATS).flatMap((c) => c.types);
+let policy = new Set(ALL_TYPES);
+let selected = new Set(ALL_TYPES);
+const filterEl = document.createElement("details");
+filterEl.className = "filter";
+filterEl.innerHTML = `
+  <summary>
+    <span class="ft-t"><svg class="i"><use href="#i-filter"/></svg>Gizlenecek veri türleri</span>
+    <span class="ft-c" data-ft="count"></span>
+    <span class="ft-src" data-ft="src"></span>
+    <svg class="i chev"><use href="#i-chev"/></svg>
+  </summary>
+  <div class="ft-grid">${Object.entries(CATS).map(([k, c]) => `
+    <div class="ft-grp${k === "m6" ? " m6" : ""}" role="group" aria-label="${c.label}">
+      <label class="chk"><input type="checkbox" class="cb" data-cat="${k}">${c.label}</label>
+      ${c.types.map((t) => `<label class="chk"><input type="checkbox" class="cb" data-type="${t}">${esc(TYPE[t])}</label>`).join("")}
+    </div>`).join("")}
+  </div>
+  <div class="ft-foot">
+    <span class="warn" data-ft="warn" hidden><svg class="i"><use href="#i-alert"/></svg><span></span></span>
+    <span class="acts"><button type="button" class="lnk" data-ft="all">Tümünü seç</button><button type="button" class="lnk" data-ft="reset">Şirket politikasına dön</button></span>
+  </div>`;
+const ft = (k) => filterEl.querySelector(`[data-ft="${k}"]`);
+filterEl.addEventListener("change", (e) => {
+  const cb = e.target;
+  if (!cb.classList.contains("cb")) return;
+  const types = cb.dataset.cat ? CATS[cb.dataset.cat].types : [cb.dataset.type];
+  types.forEach((t) => (cb.checked ? selected.add(t) : selected.delete(t)));
+  syncFilter();
+});
+ft("all").onclick = () => { selected = new Set(ALL_TYPES); syncFilter(); };
+ft("reset").onclick = () => { selected = new Set(policy); syncFilter(); };
+
+function syncFilter() {
+  filterEl.querySelectorAll("[data-type]").forEach((cb) => {
+    cb.checked = selected.has(cb.dataset.type);
+    cb.closest(".chk").classList.toggle("off", !cb.checked);
+  });
+  filterEl.querySelectorAll("[data-cat]").forEach((cb) => {
+    const ts = CATS[cb.dataset.cat].types, n = ts.filter((t) => selected.has(t)).length;
+    cb.checked = n === ts.length;
+    cb.indeterminate = n > 0 && n < ts.length;
+  });
+  const off = ALL_TYPES.filter((t) => !selected.has(t));
+  ft("count").innerHTML = off.length
+    ? `<b>${selected.size}</b> / ${ALL_TYPES.length} tür · kapalı: ${off.slice(0, 3).map((t) => esc(TYPE[t])).join(", ")}${off.length > 3 ? ` ve ${off.length - 3} tür daha` : ""}`
+    : `<b>${ALL_TYPES.length}</b> türün tamamı gizlenir`;
+  const same = selected.size === policy.size && [...selected].every((t) => policy.has(t));
+  ft("src").textContent = same ? "Şirket politikası" : "Bu oturum için değiştirildi";
+  ft("src").classList.toggle("custom", !same);
+  ft("reset").hidden = same;
+  const m6off = CATS.m6.types.filter((t) => !selected.has(t));
+  ft("warn").hidden = !m6off.length;
+  if (m6off.length) ft("warn").lastChild.textContent = `Özel nitelikli veri türlerinden ${m6off.length} tanesi kapalı; bu bilgiler gizlenmeden gönderilir.`;
+}
+
+async function loadPolicy() {
+  try {
+    const p = await api("/politika");
+    policy = new Set(p.turler);
+    selected = new Set(policy);
+  } catch {}
+  syncFilter();
+}
+syncFilter();
+
 // ---------------------------------------------------------------- bağlama
 $("scanBtn").onclick = scan;
 $("input").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) scan(); });
@@ -758,6 +871,7 @@ $("useLlm").onchange = (e) => store.set("kalkan.llm", e.target.checked ? "1" : "
 $("input").value = SAMPLES.iade;
 
 show(location.hash.slice(1) || store.get("kalkan.view") || "mesaj");
+loadPolicy();
 health(); setInterval(health, 15000);
 </script>
 </body>

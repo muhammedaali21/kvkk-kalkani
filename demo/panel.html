@@ -135,6 +135,34 @@
   .dict aside li { margin: 2px 0; }
   .dict aside code { font: 12.5px var(--mono); color: var(--navy); }
 
+  /* Gizleme politikası (uygulamadaki filtreyle aynı bileşen dili) */
+  .ft-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ft-grp { padding: 16px 20px 14px; min-width: 0; }
+  .ft-grp + .ft-grp { border-left: 1px solid var(--border); }
+  .ft-grp > .chk { font-weight: 600; font-size: 12.5px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--border); }
+  .ft-grp.m6 > .chk { color: var(--danger-text); }
+  .chk { display: flex; align-items: center; gap: 9px; padding: 4px 0; font-size: 13.5px; cursor: pointer; user-select: none; }
+  .chk.off { color: var(--text-2); }
+  input.cb { appearance: none; margin: 0; width: 15px; height: 15px; border: 1px solid var(--border-2); border-radius: 2px; background: var(--surface); display: grid; place-items: center; flex: none; cursor: pointer; transition: background var(--ease), border-color var(--ease); }
+  input.cb:checked, input.cb:indeterminate { background: var(--navy); border-color: var(--navy); }
+  input.cb:checked::after { content: ""; width: 8px; height: 4px; border-left: 1.6px solid #fff; border-bottom: 1.6px solid #fff; transform: translateY(-1px) rotate(-45deg); }
+  input.cb:indeterminate::after { content: ""; width: 7px; height: 1.6px; background: #fff; }
+  .ft-foot { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-top: 1px solid var(--border); background: var(--surface-2); font-size: 13px; flex-wrap: wrap; border-radius: 0 0 var(--r) var(--r); }
+  .ft-foot .warn { color: var(--danger-text); display: inline-flex; gap: 8px; align-items: center; }
+  .ft-foot .acts { margin-left: auto; display: flex; gap: 14px; align-items: center; }
+  .ft-foot .acts span { color: var(--text-2); }
+  .ft-foot .lnk { border: 0; background: none; padding: 0; cursor: pointer; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-2); color: var(--text); }
+  @media (min-width: 881px) and (max-width: 1180px) {
+    .ft-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ft-grp:nth-child(3) { border-left: 0; }
+    .ft-grp:nth-child(n+3) { border-top: 1px solid var(--border); }
+  }
+  @media (max-width: 880px) {
+    .ft-grid { grid-template-columns: 1fr; }
+    .ft-grp + .ft-grp { border-left: 0; border-top: 1px solid var(--border); }
+    .ft-foot .acts { margin-left: 0; }
+  }
+
   footer.foot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 24px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-3); }
 
   @media (max-width: 1080px) { .wrap { padding: 28px 28px 56px; } .grid { grid-template-columns: 1fr; } }
@@ -169,6 +197,7 @@
   <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2l6.5 11.5h-13z"/><path d="M8 6.5v3M8 11.6v.1"/></symbol>
   <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></symbol>
   <symbol id="i-menu" viewBox="0 0 16 16"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 16 16"><path d="M2.5 3.5h11l-4.2 5v4l-2.6 1.3V8.5z"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.5v3h-3"/></symbol>
 </svg>
 <template id="logo-mark"><span class="mark" aria-hidden="true">K</span></template>
@@ -187,6 +216,7 @@
       <a href="/uygulama#dosya"><svg class="i"><use href="#i-file"/></svg>Dosya gizleme</a>
       <div class="grp">Yönetim</div>
       <a href="/panel" id="navOverview" aria-current="page"><svg class="i"><use href="#i-chart"/></svg>Genel bakış</a>
+      <a href="/panel#politika" id="navPolicy"><svg class="i"><use href="#i-filter"/></svg>Gizleme politikası</a>
       <a href="/panel#sozluk" id="navDict"><svg class="i"><use href="#i-book"/></svg>Şirket sözlüğü</a>
     </nav>
     <div class="env" aria-live="polite">
@@ -236,6 +266,18 @@
           </div>
         </section>
       </div>
+
+      <section class="sec" id="politika">
+        <h2>Gizleme politikası</h2>
+        <p>Şirket genelinde hangi veri türlerinin gizleneceğini seçin. Tarayıcı eklentisi, OpenAI uyumlu proxy ve dosya gizleme bu politikaya uyar. Uygulamada tek bir tarama için değiştirilebilir; varsayılan her zaman buradaki seçimdir.</p>
+        <div class="panel">
+          <div class="ft-grid" id="polGrid"></div>
+          <div class="ft-foot">
+            <span class="warn" id="polWarn" hidden><svg class="i"><use href="#i-alert"/></svg><span></span></span>
+            <span class="acts"><button type="button" class="lnk" id="polAll">Tümünü seç</button><button class="btn sm" id="polSave">Kaydet</button><span id="polSaved" aria-live="polite"></span></span>
+          </div>
+        </div>
+      </section>
 
       <section class="sec" id="sozluk">
         <h2>Şirket sözlüğü</h2>
@@ -292,9 +334,9 @@ $("menuBtn").onclick = () => { const o = $("side").classList.toggle("open"); $("
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("side").classList.remove("open"); });
 document.querySelectorAll(".menu a").forEach((a) => a.addEventListener("click", () => $("side").classList.remove("open")));
 function markNav() {
-  const dict = location.hash === "#sozluk";
-  $("navOverview").toggleAttribute("aria-current", !dict); if (!dict) $("navOverview").setAttribute("aria-current", "page");
-  $("navDict").toggleAttribute("aria-current", dict); if (dict) $("navDict").setAttribute("aria-current", "page");
+  const current = { "#sozluk": "navDict", "#politika": "navPolicy" }[location.hash] || "navOverview";
+  ["navOverview", "navPolicy", "navDict"].forEach((id) =>
+    id === current ? $(id).setAttribute("aria-current", "page") : $(id).removeAttribute("aria-current"));
 }
 window.addEventListener("hashchange", markNav); markNav();
 
@@ -361,7 +403,54 @@ $("saveBtn").onclick = async () => {
 };
 $("refreshBtn").onclick = load;
 
-load(); loadDict(); health();
+// ---------------------------------------------------------------- gizleme politikası
+const ALL_TYPES = Object.values(CATS).flatMap((c) => c.types);
+let polSelected = new Set(ALL_TYPES);
+$("polGrid").innerHTML = Object.entries(CATS).map(([k, c]) => `
+  <div class="ft-grp${k === "m6" ? " m6" : ""}" role="group" aria-label="${c.label}">
+    <label class="chk"><input type="checkbox" class="cb" data-cat="${k}">${c.label}</label>
+    ${c.types.map((t) => `<label class="chk"><input type="checkbox" class="cb" data-type="${t}">${esc(TYPE[t])}</label>`).join("")}
+  </div>`).join("");
+function syncPolicy() {
+  document.querySelectorAll("#polGrid [data-type]").forEach((cb) => {
+    cb.checked = polSelected.has(cb.dataset.type);
+    cb.closest(".chk").classList.toggle("off", !cb.checked);
+  });
+  document.querySelectorAll("#polGrid [data-cat]").forEach((cb) => {
+    const ts = CATS[cb.dataset.cat].types, n = ts.filter((t) => polSelected.has(t)).length;
+    cb.checked = n === ts.length;
+    cb.indeterminate = n > 0 && n < ts.length;
+  });
+  const m6off = CATS.m6.types.filter((t) => !polSelected.has(t));
+  $("polWarn").hidden = !m6off.length;
+  if (m6off.length) $("polWarn").lastChild.textContent = `Özel nitelikli veri türlerinden ${m6off.length} tanesi kapalı; çalışanların mesajlarında bu bilgiler gizlenmeden gönderilir.`;
+}
+$("polGrid").addEventListener("change", (e) => {
+  const cb = e.target;
+  const types = cb.dataset.cat ? CATS[cb.dataset.cat].types : [cb.dataset.type];
+  types.forEach((t) => (cb.checked ? polSelected.add(t) : polSelected.delete(t)));
+  $("polSaved").textContent = "Kaydedilmemiş değişiklik var";
+  syncPolicy();
+});
+$("polAll").onclick = () => { polSelected = new Set(ALL_TYPES); $("polSaved").textContent = "Kaydedilmemiş değişiklik var"; syncPolicy(); };
+$("polSave").onclick = async () => {
+  const btn = $("polSave"); btn.disabled = true;
+  try {
+    const r = await fetch(API + "/politika", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turler: [...polSelected] }) });
+    if (!r.ok) throw new Error();
+    const p = await r.json();
+    polSelected = new Set(p.turler); syncPolicy();
+    $("polSaved").textContent = `Kaydedildi · ${p.turler.length} / ${p.tum_turler.length} tür gizlenir`;
+  } catch { $("polSaved").textContent = "Kaydedilemedi: yerel sunucuya ulaşılamıyor."; }
+  finally { btn.disabled = false; }
+};
+async function loadPolicy() {
+  try { polSelected = new Set((await (await fetch(API + "/politika")).json()).turler); } catch {}
+  syncPolicy();
+}
+syncPolicy();
+
+load(); loadDict(); loadPolicy(); health();
 setInterval(load, 10000); setInterval(health, 15000);
 </script>
 </body>

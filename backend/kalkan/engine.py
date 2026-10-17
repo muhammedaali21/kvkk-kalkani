@@ -28,6 +28,8 @@ PRIORITY = {
 
 # KVKK m.6 özel nitelikli kişisel veri türleri (arayüzde kırmızı gösterilir).
 SPECIAL_CATEGORIES = {"SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"}
+# Gemma katmanının bulabildiği türler; hepsi filtre dışındaysa model hiç çağrılmaz.
+LLM_CAPABLE = set(llm.LLM_TYPES)
 
 TAG_RE = re.compile(r"\[([A-Z][A-Z_]*_\d+)\]")
 _UNICODE_SPACES = re.compile(r"[  -   　]")
@@ -139,17 +141,47 @@ class Sozluk:
         return clean
 
 
+class Policy:
+    """Şirket genelinde hangi veri türlerinin gizleneceği. Varsayılan: hepsi."""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        try:
+            saved = json.loads(path.read_text(encoding="utf-8")).get("turler")
+            self.types: list[str] = [t for t in saved if t in PRIORITY] if isinstance(saved, list) else list(PRIORITY)
+        except Exception:
+            self.types = list(PRIORITY)
+
+    def set(self, types: list[str]) -> list[str]:
+        self.types = [t for t in PRIORITY if t in set(types)]  # sabit sırada sakla
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps({"turler": self.types}, ensure_ascii=False, indent=2), encoding="utf-8")
+        return self.types
+
+
 class Engine:
     def __init__(self, data_dir: Path) -> None:
         self.vaults: dict[str, Vault] = {}
         self.lock = threading.Lock()
         self.stats = Stats(data_dir / "stats.json")
         self.sozluk = Sozluk(data_dir / "sozluk.json")
+        self.policy = Policy(data_dir / "politika.json")
 
     # -- tespit ------------------------------------------------------------
+    def allowed_types(self, types: list[str] | set[str] | None) -> set[str]:
+        """İstekte tür listesi yoksa şirket politikası geçerlidir. Bilinmeyen türler yok sayılır."""
+        return set(self.policy.types) if types is None else {t for t in types if t in PRIORITY}
+
     def detect(self, text: str, use_llm: bool = True, use_names: bool = True,
-               use_regex: bool = True, phrases: list[dict] | None = None) -> tuple[list[Finding], bool]:
-        """phrases verilirse model yeniden çağrılmaz; önceden toplanan ifadeler bu metinde eşlenir."""
+               use_regex: bool = True, phrases: list[dict] | None = None,
+               types: set[str] | None = None) -> tuple[list[Finding], bool]:
+        """phrases verilirse model yeniden çağrılmaz; önceden toplanan ifadeler bu metinde eşlenir.
+
+        types verilirse yalnızca bu türler gizlenir. Filtre çakışma çözümünden ÖNCE uygulanır; böylece
+        kapatılan bir tür, açık bir türü çakışmada ezip onun da gizlenmemesine yol açmaz.
+        """
+        if types is not None and not (types & LLM_CAPABLE):
+            use_llm, phrases = False, None  # modelin bulabileceği türlerin hepsi kapalıysa modeli çağırma
         original = text
         # Word, PDF ve web sayfalarından gelen bölünemez boşluklar (U+00A0 vb.) desenleri atlatmasın.
         # Karakter sayısı değişmez, bu yüzden konumlar orijinal metinle aynı kalır.
@@ -169,6 +201,8 @@ class Engine:
             if llm_findings is not None:
                 llm_used = True
                 findings += llm_findings
+        if types is not None:
+            findings = [f for f in findings if f.type in types]
         resolved = resolve_overlaps(findings)
         for f in resolved:
             f.value = original[f.start:f.end]
@@ -188,9 +222,11 @@ class Engine:
 
     # -- mask / unmask -----------------------------------------------------
     def mask(self, text: str, session: str = "default", use_llm: bool = True,
-             record: bool = True, phrases: list[dict] | None = None) -> dict:
+             record: bool = True, phrases: list[dict] | None = None,
+             types: list[str] | set[str] | None = None) -> dict:
         t0 = time.perf_counter()
-        findings, llm_used = self.detect(text, use_llm=use_llm, phrases=phrases)
+        allowed = self.allowed_types(types)
+        findings, llm_used = self.detect(text, use_llm=use_llm, phrases=phrases, types=allowed)
         vault = self.vault(session)
         with self.lock:
             tags = [vault.tag_for(f.type, f.value) for f in findings]
@@ -212,6 +248,7 @@ class Engine:
             "counts": counts,
             "ms": round((time.perf_counter() - t0) * 1000, 1),
             "llm_used": llm_used,
+            "excluded": sorted(set(PRIORITY) - allowed),
         }
 
     def unmask(self, text: str, session: str = "default") -> str:

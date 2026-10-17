@@ -97,7 +97,8 @@ uvicorn kalkan.api:app --host 127.0.0.1 --port 8765
 | Endpoint | |
 |---|---|
 | `GET /health` | `{ok, llm, model}` |
-| `POST /mask` | `{text, session, use_llm}` → `{masked, findings, counts, ms, llm_used}` |
+| `POST /mask` | `{text, session, use_llm, types?}` → `{masked, findings, counts, ms, llm_used, excluded}` |
+| `GET/PUT /politika` | Company masking policy: which data types are masked. Used whenever a request omits `types` (extension, proxy, files). |
 | `POST /unmask` | `{text, session}` → `{text}` |
 | `GET /mapping/{session}` | tag → value (localhost only) |
 | `POST /reset/{session}` | drop a session's vault |

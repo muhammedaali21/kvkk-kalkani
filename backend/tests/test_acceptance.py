@@ -77,6 +77,23 @@ def test_nonbreaking_spaces():
     assert e.unmask(r["masked"], "nb") == text
 
 
+def test_type_filter_and_policy():
+    e = _engine()
+    # Kişi adları filtre dışı: isim açık kalır, TC yine gizlenir.
+    r = e.mask(ORNEK, session="f1", use_llm=False, types=["TC", "IBAN", "TELEFON", "EPOSTA", "ADRES"])
+    assert "Ahmet Yılmaz" in r["masked"] and "12345678950" not in r["masked"]
+    assert "KISI" in r["excluded"]
+    # Boş liste: hiçbir şey gizlenmez.
+    assert e.mask(ORNEK, session="f2", use_llm=False, types=[])["masked"] == ORNEK
+    # Filtre çakışma çözümünden önce uygulanır: adres kapalıyken adresin içindeki isim yine gizlenir.
+    r = e.mask("Ahmet Yılmaz Sokak No: 5", session="f3", use_llm=False, types=["KISI"])
+    assert r["masked"].startswith("[KISI_1]"), r["masked"]
+    # Şirket politikası, istekte tür listesi yokken geçerlidir.
+    e.policy.set(["TC"])
+    r = e.mask(ORNEK, session="f4", use_llm=False)
+    assert set(r["counts"]) == {"TC"}, r["counts"]
+
+
 def test_stats_have_no_raw_data():
     e = _engine()
     e.mask(ORNEK, session="x", use_llm=False)

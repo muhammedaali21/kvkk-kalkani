@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 
 from . import llm
-from .engine import Engine
+from .engine import PRIORITY, Engine
 from .files import mask_file
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -39,6 +39,8 @@ class MaskIn(BaseModel):
     text: str
     session: str = "default"
     use_llm: bool = True
+    # Gizlenecek veri türleri; verilmezse şirket politikası (/politika) geçerlidir.
+    types: list[str] | None = None
 
 
 class UnmaskIn(BaseModel):
@@ -50,6 +52,10 @@ class SozlukIn(BaseModel):
     terimler: list[str]
 
 
+class PolitikaIn(BaseModel):
+    turler: list[str]
+
+
 @app.get("/health")
 def health() -> dict:
     h = llm.health(timeout=1)
@@ -58,7 +64,7 @@ def health() -> dict:
 
 @app.post("/mask")
 def mask(body: MaskIn) -> dict:
-    return engine.mask(body.text, session=body.session, use_llm=body.use_llm)
+    return engine.mask(body.text, session=body.session, use_llm=body.use_llm, types=body.types)
 
 
 @app.post("/unmask")
@@ -84,11 +90,13 @@ async def mask_file_endpoint(
     file: UploadFile = File(...),
     session: str = Form(default=""),
     use_llm: bool = Form(default=False),
+    types: str | None = Form(default=None),  # virgülle ayrılmış; verilmezse şirket politikası
 ) -> Response:
     session = session or f"dosya-{uuid.uuid4().hex[:8]}"
     data = await file.read()
+    type_list = None if types is None else [t.strip() for t in types.split(",") if t.strip()]
     try:
-        content, media, report = mask_file(engine, file.filename or "", data, session, use_llm)
+        content, media, report = mask_file(engine, file.filename or "", data, session, use_llm, type_list)
     except ValueError as e:
         raise HTTPException(400, str(e))
     stem, _, ext = (file.filename or "dosya.txt").rpartition(".")
@@ -117,6 +125,16 @@ def get_sozluk() -> dict:
 @app.put("/sozluk")
 def put_sozluk(body: SozlukIn) -> dict:
     return {"terimler": engine.sozluk.set(body.terimler)}
+
+
+@app.get("/politika")
+def get_politika() -> dict:
+    return {"turler": engine.policy.types, "tum_turler": list(PRIORITY)}
+
+
+@app.put("/politika")
+def put_politika(body: PolitikaIn) -> dict:
+    return {"turler": engine.policy.set(body.turler), "tum_turler": list(PRIORITY)}
 
 
 @app.post("/v1/chat/completions")
