@@ -6,20 +6,21 @@
 <title>Kalkan · Genel bakış</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap">
 <style>
   /* Tokenlar ve iskelet index.html ile aynıdır. */
   :root {
-    --bg: #e8ebf0; --surface: #ffffff; --surface-2: #f3f5f8;
-    --navy: #172b4d; --navy-2: #243b53;
-    --teal: #1f6a7e; --teal-soft: #e8f2f5;
-    --text: #1f2937; --text-2: #4e5b6e; --text-3: #5a687c;
-    --border: #d3dae3; --border-2: #bcc6d2;
-    --success: #25836a; --success-soft: #e6f3ee;
-    --warning: #b9852e; --warning-text: #835c14; --warning-soft: #fbf3e3;
-    --danger: #be4b49; --danger-text: #a63c3a; --danger-soft: #fbeceb;
-    --r: 8px; --r-sm: 6px;
-    --sans: Inter, "Segoe UI", system-ui, sans-serif;
+    --bg: #eeedea; --surface: #fbfbfa; --surface-2: #f6f5f3;
+    --navy: #1b1b1a; --navy-2: #33322f;
+    --teal: #1b1b1a; --teal-soft: #e5e3de;
+    --text: #1b1b1a; --text-2: #4f4c46; --text-3: #625e57;
+    --border: #dedbd5; --border-2: #c9c5be;
+    --success: #3f7a52; --success-soft: #e7efe7;
+    --warning: #9a6b1e; --warning-text: #7c5512; --warning-soft: #f4ecdc;
+    --danger: #a8413c; --danger-text: #96392f; --danger-soft: #f5e6e3;
+    --r: 4px; --r-sm: 3px;
+    --sans: Manrope, "Segoe UI", system-ui, sans-serif;
+    --serif: "Playfair Display", Georgia, "Times New Roman", serif;
     --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
     --ease: 160ms ease;
     color-scheme: light;
@@ -27,7 +28,7 @@
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; }
-  body { background: var(--bg); color: var(--text); font: 14px/1.6 var(--sans); -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "tnum"; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 var(--sans); -webkit-font-smoothing: antialiased; font-feature-settings: "tnum"; }
   a { color: var(--teal); text-decoration: none; }
   a:hover { text-decoration: underline; }
   button, textarea { font: inherit; color: inherit; }
@@ -38,8 +39,8 @@
   .side { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
   .logo { display: flex; align-items: center; gap: 10px; padding: 20px 20px 18px; border-bottom: 1px solid var(--border); color: var(--navy); }
   .logo:hover { text-decoration: none; }
-  .logo .mark { width: 30px; height: 30px; border-radius: 7px; background: var(--navy); display: grid; place-items: center; }
-  .logo b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+  .logo .mark { width: 26px; height: 26px; background: var(--navy); color: #fff; display: grid; place-items: center; font: 500 15px/1 var(--serif); }
+  .logo b { display: block; font: 400 19px/1.1 var(--serif); letter-spacing: -0.01em; }
   .logo small { display: block; font-size: 11.5px; color: var(--text-2); line-height: 1.3; }
   .menu { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
   .menu .grp { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); padding: 14px 10px 6px; }
@@ -61,8 +62,8 @@
   .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 40px 64px; }
 
   .phead { display: flex; align-items: flex-end; gap: 24px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
-  .phead .crumb { font-size: 12.5px; color: var(--text-3); margin-bottom: 6px; }
-  .phead h1 { font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; color: var(--navy); margin: 0 0 6px; }
+  .phead .crumb { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
+  .phead h1 { font: 400 34px/1.15 var(--serif); letter-spacing: -0.015em; color: var(--text); margin: 0 0 10px; }
   .phead p { margin: 0; color: var(--text-2); max-width: 68ch; }
   .phead .actions { margin-left: auto; display: flex; gap: 12px; align-items: center; flex: none; font-size: 12.5px; color: var(--text-3); }
 
@@ -76,7 +77,7 @@
   .note { display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--r); border: 1px solid; font-size: 13.5px; line-height: 1.55; }
   .note svg { margin-top: 2px; }
   .note b { display: block; font-weight: 600; margin-bottom: 2px; }
-  .note.danger { background: var(--danger-soft); border-color: #f1d3d2; color: var(--danger-text); }
+  .note.danger { background: var(--danger-soft); border-color: #e6cbc6; color: var(--danger-text); }
   .note.info { background: var(--surface); border-color: var(--border); color: var(--text-2); }
   .note.info b { color: var(--text); }
   .note[hidden] { display: none; }
@@ -84,18 +85,18 @@
 
   /* Özet */
   .overview .lead { display: flex; align-items: baseline; gap: 16px; padding: 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-  .overview .lead strong { font-size: 40px; line-height: 1; font-weight: 600; letter-spacing: -0.03em; color: var(--navy); }
+  .overview .lead strong { font: 400 56px/1 var(--serif); letter-spacing: -0.03em; color: var(--text); }
   .overview .lead span { color: var(--text-2); font-size: 15px; max-width: 52ch; }
   .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .facts div { padding: 18px 24px; }
   .facts div + div { border-left: 1px solid var(--border); }
-  .facts strong { display: block; font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.015em; }
+  .facts strong { display: block; font: 400 28px/1.15 var(--serif); color: var(--text); letter-spacing: -0.015em; }
   .facts small { color: var(--text-2); font-size: 12.5px; }
   .facts .m6 strong { color: var(--danger-text); }
 
   .grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; margin-top: 24px; align-items: start; }
   .box .bh { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); }
-  .box .bh h2 { margin: 0; font-size: 14px; font-weight: 600; }
+  .box .bh h2 { margin: 0; font: 400 18px/1.3 var(--serif); }
   .box .bh span { margin-left: auto; font-size: 12.5px; color: var(--text-2); }
   .box .bb { padding: 16px 20px 20px; }
 
@@ -109,7 +110,7 @@
 
   .chart { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; align-items: end; height: 180px; border-bottom: 1px solid var(--border); padding-top: 12px; }
   .chart .d { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; height: 100%; }
-  .chart .c { width: 100%; max-width: 30px; border-radius: 3px 3px 0 0; background: var(--teal); min-height: 2px; }
+  .chart .c { width: 100%; max-width: 30px; background: #b8b3aa; min-height: 2px; }
   .chart .d.today .c { background: var(--navy); }
   .chart .v { font: 11.5px var(--mono); color: var(--text-2); }
   .clbl { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 8px; font-size: 12px; color: var(--text-3); text-align: center; }
@@ -117,9 +118,10 @@
 
   .empty { display: flex; flex-direction: column; gap: 6px; color: var(--text-2); padding: 8px 0; max-width: 48ch; }
   .empty b { color: var(--text); font-weight: 500; }
+  .empty a { text-decoration: underline; text-underline-offset: 3px; }
 
   section.sec { margin-top: 40px; scroll-margin-top: 24px; }
-  section.sec > h2 { font-size: 16px; font-weight: 600; color: var(--navy); margin: 0 0 4px; letter-spacing: -0.01em; }
+  section.sec > h2 { font: 400 24px/1.25 var(--serif); color: var(--text); margin: 0 0 6px; letter-spacing: -0.01em; }
   section.sec > p { margin: 0 0 16px; color: var(--text-2); max-width: 70ch; }
   .dict { display: grid; grid-template-columns: minmax(0, 1fr) 280px; }
   .dict .ed { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
@@ -139,7 +141,7 @@
   @media (max-width: 880px) {
     .app { grid-template-columns: 1fr; }
     .side { position: fixed; inset: 0 auto 0 0; width: 272px; z-index: 30; transform: translateX(-100%); transition: transform 200ms ease; }
-    .side.open { transform: none; box-shadow: 0 0 0 100vmax rgba(23, 43, 77, .28); }
+    .side.open { transform: none; box-shadow: 0 0 0 100vmax rgba(27, 27, 26, .28); }
     .mbar { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; }
     .mbar .logo { padding: 0; border: 0; }
     .mbar button { margin-left: auto; width: 36px; height: 36px; border: 1px solid var(--border-2); background: var(--surface); border-radius: var(--r-sm); display: grid; place-items: center; cursor: pointer; }
@@ -169,7 +171,7 @@
   <symbol id="i-menu" viewBox="0 0 16 16"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.5v3h-3"/></symbol>
 </svg>
-<template id="logo-mark"><span class="mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="2.2" rx=".6" fill="#fff"/><rect x="2" y="7" width="7.5" height="2.2" rx=".6" fill="#7fb6c5"/><rect x="2" y="11" width="10" height="2.2" rx=".6" fill="#fff"/></svg></span></template>
+<template id="logo-mark"><span class="mark" aria-hidden="true">K</span></template>
 
 <div class="mbar">
   <a class="logo" href="/"><span data-logo></span><span><b>Kalkan</b></span></a>
@@ -181,8 +183,8 @@
     <a class="logo" href="/"><span data-logo></span><span><b>Kalkan</b><small>KVKK veri koruma</small></span></a>
     <nav class="menu" aria-label="Ana menü">
       <div class="grp">Çalışma alanı</div>
-      <a href="/#mesaj"><svg class="i"><use href="#i-msg"/></svg>Mesaj tarama</a>
-      <a href="/#dosya"><svg class="i"><use href="#i-file"/></svg>Dosya gizleme</a>
+      <a href="/uygulama#mesaj"><svg class="i"><use href="#i-msg"/></svg>Mesaj tarama</a>
+      <a href="/uygulama#dosya"><svg class="i"><use href="#i-file"/></svg>Dosya gizleme</a>
       <div class="grp">Yönetim</div>
       <a href="/panel" id="navOverview" aria-current="page"><svg class="i"><use href="#i-chart"/></svg>Genel bakış</a>
       <a href="/panel#sozluk" id="navDict"><svg class="i"><use href="#i-book"/></svg>Şirket sözlüğü</a>
@@ -275,10 +277,10 @@ const TYPE = {
   TICARI_SIR: "Ticari bilgi", SOZLUK: "Şirket sözlüğü terimi",
 };
 const CATS = {
-  m6:     { label: "Özel nitelikli (md. 6)", color: "#be4b49", rank: 0, types: ["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"] },
-  kimlik: { label: "Kimlik / finansal",      color: "#172b4d", rank: 1, types: ["TC", "IBAN", "KART", "VKN"] },
-  kisi:   { label: "Kişi / iletişim",        color: "#24748a", rank: 2, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
-  ticari: { label: "Ticari bilgi",           color: "#b9852e", rank: 3, types: ["TICARI_SIR", "SOZLUK"] },
+  m6:     { label: "Özel nitelikli (md. 6)", color: "#a8413c", rank: 0, types: ["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"] },
+  kimlik: { label: "Kimlik / finansal",      color: "#1b1b1a", rank: 1, types: ["TC", "IBAN", "KART", "VKN"] },
+  kisi:   { label: "Kişi / iletişim",        color: "#8a8378", rank: 2, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
+  ticari: { label: "Ticari bilgi",           color: "#a07a3c", rank: 3, types: ["TICARI_SIR", "SOZLUK"] },
 };
 const catOf = (t) => Object.values(CATS).find((c) => c.types.includes(t)) || CATS.kisi;
 const $ = (id) => document.getElementById(id);
@@ -326,7 +328,7 @@ async function load() {
   $("types").innerHTML = types.length ? types.map(([t, n]) => {
     const c = catOf(t);
     return `<div class="trow"><div class="nm">${esc(TYPE[t] || t)}<small>${c.label}</small></div><div class="track"><div class="fill" style="width:${(n / max) * 100}%;background:${c.color}"></div></div><div class="v">${fmt(n)}</div></div>`;
-  }).join("") : `<div class="empty"><b>Henüz tarama yapılmadı</b>Çalışanlar mesaj veya dosya taradıkça veri türleri burada listelenir. <a href="/#mesaj">Bir mesaj tarayın</a></div>`;
+  }).join("") : `<div class="empty"><b>Henüz tarama yapılmadı</b>Çalışanlar mesaj veya dosya taradıkça veri türleri burada listelenir. <a href="/uygulama#mesaj">Bir mesaj tarayın</a></div>`;
 
   const days = [];
   for (let i = 6; i >= 0; i--) {

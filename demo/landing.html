@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkan · Yapay zekâ serbest, veri şirkette</title>
+<meta name="description" content="Kalkan, çalışanların yapay zekâ araçlarına yapıştırdığı kişisel verileri bilgisayardan çıkmadan gizleyen yerel bir KVKK katmanıdır.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #eeedea; --bar: #f6f5f3; --surface: #fbfbfa; --line: #dedbd5; --line-2: #c9c5be;
+    --ink: #1b1b1a; --ink-2: #4f4c46; --muted: #6b6760;
+    --red: #a8413c;
+    --serif: "Playfair Display", Georgia, "Times New Roman", serif;
+    --sans: Manrope, "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.65 var(--sans); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+
+  /* ---------------------------------------------------------------- üst çubuk */
+  .nav { position: sticky; top: 0; z-index: 10; height: 58px; background: var(--bar); border-bottom: 1px solid var(--line); }
+  .nav .in { max-width: 1120px; height: 100%; margin: 0 auto; padding: 0 40px; display: flex; align-items: center; }
+  .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .brand .m { width: 24px; height: 24px; background: var(--ink); color: #fff; display: grid; place-items: center; font: 500 14px/1 var(--serif); }
+  .brand b { font: 400 18px/1 var(--serif); letter-spacing: -0.01em; }
+  .links { display: flex; gap: 26px; margin: 0 auto; }
+  .links a { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 160ms ease; }
+  .links a:hover { color: var(--ink); }
+  .btn-o { display: inline-flex; align-items: center; height: 32px; padding: 0 18px; border: 1px solid var(--ink); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; transition: background 160ms ease, color 160ms ease; }
+  .btn-o:hover { background: var(--ink); color: #fff; }
+
+  /* ---------------------------------------------------------------- hero */
+  .hero { min-height: calc(100vh - 58px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 72px 24px 0; position: relative; }
+  .eyebrow { font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin: 0 0 22px; }
+  .hero h1 { font: 400 clamp(44px, 7vw, 76px)/1.04 var(--serif); letter-spacing: -0.02em; margin: 0; }
+  .hero h1 em { display: block; font-style: italic; }
+  .hero p.lead { max-width: 500px; margin: 26px auto 0; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+  .ctas { display: flex; gap: 12px; justify-content: center; margin-top: 38px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 12px; height: 44px; padding: 0 24px; font-size: 13px; font-weight: 600; text-decoration: none; border: 1px solid var(--ink); transition: background 160ms ease, border-color 160ms ease; }
+  .btn.dark { background: var(--ink); color: #fff; }
+  .btn.dark:hover { background: #33322f; }
+  .btn.light { background: var(--surface); border-color: var(--line); color: var(--ink); }
+  .btn.light:hover { border-color: var(--ink); }
+  .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+  .scrollcue { margin-top: auto; padding-top: 96px; }
+  .scrollcue i { display: block; width: 1px; height: 52px; background: var(--line-2); }
+
+  /* ---------------------------------------------------------------- bölümler */
+  section.s { max-width: 1120px; margin: 0 auto; padding: 112px 40px; border-top: 1px solid var(--line); scroll-margin-top: 58px; }
+  .s-head { display: grid; grid-template-columns: 1fr 1.2fr; gap: 64px; align-items: end; margin-bottom: 56px; }
+  .s-head h2 { font: 400 clamp(32px, 4vw, 44px)/1.12 var(--serif); letter-spacing: -0.015em; margin: 0; }
+  .s-head h2 em { font-style: italic; }
+  .s-head p { margin: 0; color: var(--ink-2); max-width: 54ch; }
+
+  /* Belge örneği */
+  .doc { background: var(--surface); border: 1px solid var(--line); }
+  .doc .row { display: grid; grid-template-columns: 140px 1fr; border-top: 1px solid var(--line); }
+  .doc .row:first-child { border-top: 0; }
+  .doc .k { padding: 22px 24px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-right: 1px solid var(--line); }
+  .doc .v { padding: 20px 24px; font: 14px/2 var(--mono); }
+  .rd { background: var(--ink); color: #fff; font-size: 11px; padding: 2px 6px; letter-spacing: .03em; white-space: nowrap; }
+  .rd.m6 { background: var(--red); }
+  .tg { border-bottom: 1px solid var(--ink); }
+
+  .steps3 { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 48px; border-top: 1px solid var(--line); }
+  .steps3 div { padding: 28px 28px 0 0; }
+  .steps3 div + div { padding-left: 28px; border-left: 1px solid var(--line); }
+  .steps3 .n { font: italic 400 15px var(--serif); color: var(--muted); }
+  .steps3 h3 { font: 400 22px/1.3 var(--serif); margin: 8px 0 8px; }
+  .steps3 p { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+
+  /* Katmanlar */
+  .layers { border-top: 1px solid var(--ink); }
+  .layer { display: grid; grid-template-columns: 64px minmax(0, 1.1fr) minmax(0, 1.4fr) 140px; gap: 24px; align-items: baseline; padding: 26px 0; border-bottom: 1px solid var(--line); }
+  .layer .n { font: italic 400 15px var(--serif); color: var(--muted); }
+  .layer h3 { font: 400 22px/1.3 var(--serif); margin: 0; }
+  .layer p { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+  .layer .t { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); text-align: right; }
+
+  /* Alıntı */
+  .quote { text-align: center; max-width: 820px; margin: 0 auto; }
+  .quote blockquote { font: italic 400 clamp(28px, 3.6vw, 42px)/1.25 var(--serif); margin: 0 0 32px; letter-spacing: -0.01em; }
+  .quote p { color: var(--ink-2); max-width: 60ch; margin: 0 auto 14px; }
+
+  /* Ölçüm */
+  .figs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); }
+  .figs div { padding: 32px 24px 30px 0; }
+  .figs div + div { padding-left: 24px; border-left: 1px solid var(--line); }
+  .figs strong { display: block; font: 400 48px/1 var(--serif); letter-spacing: -0.02em; }
+  .figs span { display: block; margin-top: 12px; font-size: 13.5px; color: var(--ink-2); }
+  .fine { margin-top: 18px; font-size: 13px; color: var(--muted); max-width: 80ch; }
+  table.cmp { width: 100%; border-collapse: collapse; margin-top: 48px; font-size: 14px; }
+  table.cmp th, table.cmp td { text-align: left; padding: 14px 16px 14px 0; border-bottom: 1px solid var(--line); }
+  table.cmp th { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  table.cmp td.num { font-family: var(--mono); font-size: 13.5px; }
+  table.cmp tr td:last-child { font-weight: 600; }
+
+  /* Yönetişim */
+  .gov { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border-top: 1px solid var(--line); }
+  .gov div { padding: 32px 32px 32px 0; border-bottom: 1px solid var(--line); }
+  .gov div:nth-child(even) { padding-left: 32px; border-left: 1px solid var(--line); }
+  .gov h3 { font: 400 21px/1.3 var(--serif); margin: 0 0 8px; }
+  .gov p { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+
+  /* Kapanış */
+  .final { text-align: center; }
+  .final h2 { font: 400 clamp(34px, 4.5vw, 52px)/1.1 var(--serif); margin: 0; letter-spacing: -0.02em; }
+  .final h2 em { display: block; font-style: italic; }
+  .final p { color: var(--ink-2); margin: 22px auto 0; max-width: 52ch; }
+  .final code { font: 13px var(--mono); background: var(--surface); border: 1px solid var(--line); padding: 2px 8px; }
+
+  footer { border-top: 1px solid var(--line); background: var(--bar); }
+  footer .in { max-width: 1120px; margin: 0 auto; padding: 28px 40px; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  footer .in .brand { margin-right: 12px; color: var(--ink); }
+  footer a { color: var(--ink-2); }
+
+  @media (max-width: 900px) {
+    .nav .in, footer .in { padding: 0 20px; }
+    footer .in { padding: 24px 20px; }
+    .links { display: none; }
+    .btn-o { margin-left: auto; }
+    section.s { padding: 80px 20px; }
+    .s-head { grid-template-columns: 1fr; gap: 16px; margin-bottom: 36px; }
+    .doc .row { grid-template-columns: 1fr; }
+    .doc .k { border-right: 0; border-bottom: 1px solid var(--line); padding: 12px 16px; }
+    .doc .v { padding: 14px 16px; font-size: 13px; }
+    .steps3, .figs, .gov { grid-template-columns: 1fr; }
+    .steps3 div, .steps3 div + div { padding: 24px 0; border-left: 0; border-bottom: 1px solid var(--line); }
+    .figs div, .figs div + div { padding: 24px 0; border-left: 0; }
+    .figs div + div { border-top: 1px solid var(--line); }
+    .gov div, .gov div:nth-child(even) { padding: 24px 0; border-left: 0; }
+    .layer { grid-template-columns: 40px 1fr; gap: 6px 16px; }
+    .layer p, .layer .t { grid-column: 2; text-align: left; }
+    table.cmp { font-size: 13px; }
+    .tscroll { overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="in">
+    <a class="brand" href="/" aria-label="Kalkan ana sayfa"><span class="m" aria-hidden="true">K</span><b>Kalkan</b></a>
+    <nav class="links" aria-label="Sayfa bölümleri">
+      <a href="#ne-yapar">Ne yapar</a>
+      <a href="#nasil-calisir">Nasıl çalışır</a>
+      <a href="#neden-yerel">Neden yerel</a>
+      <a href="#olcum">Ölçüm</a>
+      <a href="#yonetisim">Yönetişim</a>
+    </nav>
+    <a class="btn-o" href="/uygulama">Uygulamayı aç</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="eyebrow">KVKK uyumlu yapay zekâ kullanımı</p>
+    <h1>Yapay zekâ serbest,<em>veri şirkette.</em></h1>
+    <p class="lead">Kalkan, çalışanların ChatGPT, Claude ve Gemini'ye yapıştırdığı kişisel verileri gönderilmeden önce bilgisayarın içinde gizler; cevap geldiğinde gerçek değerleri yerine koyar.</p>
+    <div class="ctas">
+      <a class="btn dark" href="/uygulama">Uygulamayı aç <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4"/></svg></a>
+      <a class="btn light" href="#nasil-calisir">Nasıl çalışır</a>
+    </div>
+    <div class="scrollcue" aria-hidden="true"><i></i></div>
+  </section>
+
+  <section class="s" id="ne-yapar">
+    <div class="s-head">
+      <h2>Çalışan yazar.<br><em>Yapay zekâ etiketleri görür.</em></h2>
+      <p>Müşteri adı, T.C. kimlik numarası, IBAN, sağlık bilgisi ya da kâr marjı; hiçbiri şirketin dışına çıkmaz. Aynı kişi konuşma boyunca hep aynı etiketi alır, bu yüzden yapay zekâ bağlamı kaybetmez ve işini yapmaya devam eder.</p>
+    </div>
+    <div class="doc" role="figure" aria-label="Örnek: çalışanın yazdığı, yapay zekânın gördüğü ve çalışanın okuduğu metin">
+      <div class="row"><div class="k">Çalışan yazar</div><div class="v">Müşterimiz <span class="tg">Ahmet Yılmaz</span> (TC: <span class="tg">12345678950</span>) iade istiyor. Kendisi <span class="tg">şeker hastası</span>; <span class="tg">kâr marjımız %18</span>.</div></div>
+      <div class="row"><div class="k">Yapay zekâ görür</div><div class="v">Müşterimiz <span class="rd">KISI_1</span> (TC: <span class="rd">TC_1</span>) iade istiyor. Kendisi <span class="rd m6">SAGLIK_1</span>; <span class="rd">TICARI_SIR_1</span>.</div></div>
+      <div class="row"><div class="k">Çalışan okur</div><div class="v">Sayın <span class="tg">Ahmet Yılmaz</span>, iade talebiniz onaylanmıştır.</div></div>
+    </div>
+    <div class="steps3">
+      <div><span class="n">i.</span><h3>Tarar</h3><p>Gönder tuşuna basıldığı anda metin bu bilgisayarda taranır. Sunucuya ulaşılamazsa mesaj hiç gönderilmez.</p></div>
+      <div><span class="n">ii.</span><h3>Gizler</h3><p>Kişisel veriler ve ticari bilgiler tutarlı etiketlerle değiştirilir. Excel ve CSV listeleri de analiz bozulmadan gizlenir.</p></div>
+      <div><span class="n">iii.</span><h3>Geri çevirir</h3><p>Cevaptaki etiketler yalnızca çalışanın ekranında gerçek değerlere döner. Eşleme tablosu bellekte kalır, diske yazılmaz.</p></div>
+    </div>
+  </section>
+
+  <section class="s" id="nasil-calisir">
+    <div class="s-head">
+      <h2>Dört katman,<br><em>tek bir karar.</em></h2>
+      <p>Sayılar kurallarla, bağlam yerel bir dil modeliyle yakalanır. Doğrulamadan geçmeyen sayılar, örneğin sipariş numaraları, maskelenmez. Modelin metinde birebir bulunmayan her çıktısı atılır.</p>
+    </div>
+    <div class="layers">
+      <div class="layer"><span class="n">01</span><h3>Desen ve sağlama</h3><p>T.C. kimlik algoritması, IBAN mod-97, vergi numarası ve Luhn kontrolü; telefon, e-posta, plaka ve açık adres.</p><span class="t">Kural tabanlı</span></div>
+      <div class="layer"><span class="n">02</span><h3>Türkçe isim listesi</h3><p>Yaygın Türkçe adlar ve soyadı kalıbı. "Ayşe Hanım" gibi hitaplarda ad gizlenir, hitap bağlam için kalır.</p><span class="t">Kural tabanlı</span></div>
+      <div class="layer"><span class="n">03</span><h3>Şirket sözlüğü</h3><p>Müşteri firmalar, tedarikçiler ve gizli proje adları. Yönetici panelinden girilir.</p><span class="t">Şirkete özel</span></div>
+      <div class="layer"><span class="n">04</span><h3>Gemma 4, yerel</h3><p>Listede olmayan isimler, dolaylı kimlikler, KVKK md. 6 kapsamındaki özel nitelikli veriler ve ticari bilgi. Ollama ile bu bilgisayarda çalışır.</p><span class="t">Açık model</span></div>
+    </div>
+  </section>
+
+  <section class="s" id="neden-yerel">
+    <div class="quote">
+      <p class="eyebrow">Neden yerel, neden açık model</p>
+      <blockquote>“Veriyi temizleyecek model, veriyi görür.”</blockquote>
+      <p>Bir müşteri listesini anonimleştirmek için kapalı bir bulut servisine göndermek, önlenmeye çalışılan sızıntının ta kendisidir. Bu iş tanımı gereği yalnızca çalışanın bilgisayarında, açık ağırlıklı bir modelle yapılabilir.</p>
+      <p>Yerel çalışmanın iki yan etkisi daha var: internet bağlantısı ya da mesaj başına ücret gerekmez, ve model Türkçe bağlam için kurum içinde özelleştirilebilir.</p>
+    </div>
+  </section>
+
+  <section class="s" id="olcum">
+    <div class="s-head">
+      <h2>Ölçtük,<br><em>sınırlarıyla birlikte.</em></h2>
+      <p>Müşteri hizmetleri, İK, hukuk ve tuzak örneklerden oluşan 100 sentetik Türkçe metin. Tüm kimlik numaraları algoritmik olarak geçerli ama uydurmadır; gerçek kişi verisi kullanılmadı.</p>
+    </div>
+    <div class="figs">
+      <div><strong>%99</strong><span>hassas verinin sızması engellendi (recall)</span></div>
+      <div><strong>%96</strong><span>maskelemelerin isabeti (precision)</span></div>
+      <div><strong>%100</strong><span>sağlık, inanç, sendika, ceza ve ticari bilgi</span></div>
+      <div><strong>~0,5 sn</strong><span>örnek başına, dizüstü bilgisayarda</span></div>
+    </div>
+    <div class="tscroll">
+      <table class="cmp">
+        <thead><tr><th>Katmanlar</th><th>Kimlik ve iletişim</th><th>Kişi adları</th><th>Özel nitelikli ve ticari</th><th>Toplam</th></tr></thead>
+        <tbody>
+          <tr><td>Yalnızca desen ve sağlama</td><td class="num">%100</td><td class="num">%0</td><td class="num">%0</td><td class="num">%40</td></tr>
+          <tr><td>+ Türkçe isim listesi</td><td class="num">%100</td><td class="num">%59</td><td class="num">%0</td><td class="num">%63</td></tr>
+          <tr><td>+ Gemma 4, yerel</td><td class="num">%100</td><td class="num">%97</td><td class="num">%100</td><td class="num">%99</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fine">Gemma'nın 12 gereksiz maskelemesinin çoğu fatura ve bütçe tutarlarının ticari bilgi sanılması; kaçırdığı üç isimden biri ay adıyla aynı olan "Eylül". Model talimatı bu ölçüme göre ayarlanmadı. Şablonla üretilmiş veride yapılandırılmış alanlar gerçek metne göre daha kolaydır.</p>
+  </section>
+
+  <section class="s" id="yonetisim">
+    <div class="s-head">
+      <h2>Yöneticiye istatistik,<br><em>çalışana mahremiyet.</em></h2>
+      <p>Yapay zekâyı yasaklamak yerine güvenli kullanmak: şirket ne kadar verinin korunduğunu görür, kimin ne yazdığını görmez.</p>
+    </div>
+    <div class="gov">
+      <div><h3>Ham veri diske yazılmaz</h3><p>İstatistik dosyasında yalnızca veri türü ve sayı tutulur. Etiket ile gerçek değer arasındaki eşleme sadece bellekte durur.</p></div>
+      <div><h3>Güvenli tarafta kalır</h3><p>Yerel sunucu kapalıysa ya da editör içeriği değiştirilemezse eklenti mesajı göndermez ve çalışanı uyarır.</p></div>
+      <div><h3>Özel nitelikli veri ayrı izlenir</h3><p>KVKK md. 6 kapsamındaki sağlık, inanç, sendika ve ceza bilgileri ayrı işaretlenir ve panelde ayrıca sayılır.</p></div>
+      <div><h3>Çalışanın olduğu yerde</h3><p>Tarayıcı eklentisi ChatGPT, Claude ve Gemini'de çalışır. OpenAI uyumlu proxy ile şirket içi araçlar da aynı katmandan geçebilir.</p></div>
+    </div>
+  </section>
+
+  <section class="s final">
+    <h2>Yasaklamadan,<em>güvenle.</em></h2>
+    <p>Kalkan açık kaynaktır ve MIT lisansıyla dağıtılır. Kurulum bir komut: <code>uvicorn kalkan.api:app --port 8765</code></p>
+    <div class="ctas">
+      <a class="btn dark" href="/uygulama">Uygulamayı aç <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4"/></svg></a>
+      <a class="btn light" href="/panel">Yönetici paneli</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="in">
+    <a class="brand" href="/"><span class="m" aria-hidden="true">K</span><b>Kalkan</b></a>
+    <span>Yerel KVKK katmanı · MIT lisansı</span>
+    <span>Gerçek değerler bu bilgisayardan çıkmaz.</span>
+  </div>
+</footer>
+</body>
+</html>

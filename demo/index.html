@@ -6,20 +6,21 @@
 <title>Kalkan · Mesaj tarama</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap">
 <style>
   /* ---------------------------------------------------------------- tasarım tokenları */
   :root {
-    --bg: #e8ebf0; --surface: #ffffff; --surface-2: #f3f5f8;
-    --navy: #172b4d; --navy-2: #243b53;
-    --teal: #1f6a7e; --teal-soft: #e8f2f5;
-    --text: #1f2937; --text-2: #4e5b6e; --text-3: #5a687c;
-    --border: #d3dae3; --border-2: #bcc6d2;
-    --success: #25836a; --success-soft: #e6f3ee;
-    --warning: #b9852e; --warning-text: #835c14; --warning-soft: #fbf3e3;
-    --danger: #be4b49; --danger-text: #a63c3a; --danger-soft: #fbeceb;
-    --r: 8px; --r-sm: 6px;
-    --sans: Inter, "Segoe UI", system-ui, sans-serif;
+    --bg: #eeedea; --surface: #fbfbfa; --surface-2: #f6f5f3;
+    --navy: #1b1b1a; --navy-2: #33322f;
+    --teal: #1b1b1a; --teal-soft: #e5e3de;
+    --text: #1b1b1a; --text-2: #4f4c46; --text-3: #625e57;
+    --border: #dedbd5; --border-2: #c9c5be;
+    --success: #3f7a52; --success-soft: #e7efe7;
+    --warning: #9a6b1e; --warning-text: #7c5512; --warning-soft: #f4ecdc;
+    --danger: #a8413c; --danger-text: #96392f; --danger-soft: #f5e6e3;
+    --r: 4px; --r-sm: 3px;
+    --sans: Manrope, "Segoe UI", system-ui, sans-serif;
+    --serif: "Playfair Display", Georgia, "Times New Roman", serif;
     --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
     --ease: 160ms ease;
     color-scheme: light;
@@ -27,7 +28,7 @@
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; }
-  body { background: var(--bg); color: var(--text); font: 14px/1.6 var(--sans); -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "tnum"; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 var(--sans); -webkit-font-smoothing: antialiased; font-feature-settings: "tnum"; }
   a { color: var(--teal); text-decoration: none; }
   a:hover { text-decoration: underline; }
   button, select, textarea, input { font: inherit; color: inherit; }
@@ -40,8 +41,8 @@
   .side { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
   .logo { display: flex; align-items: center; gap: 10px; padding: 20px 20px 18px; border-bottom: 1px solid var(--border); color: var(--navy); }
   .logo:hover { text-decoration: none; }
-  .logo .mark { width: 30px; height: 30px; border-radius: 7px; background: var(--navy); display: grid; place-items: center; }
-  .logo b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+  .logo .mark { width: 26px; height: 26px; background: var(--navy); color: #fff; display: grid; place-items: center; font: 500 15px/1 var(--serif); }
+  .logo b { display: block; font: 400 19px/1.1 var(--serif); letter-spacing: -0.01em; }
   .logo small { display: block; font-size: 11.5px; color: var(--text-2); line-height: 1.3; }
   .menu { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
   .menu .grp { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); padding: 14px 10px 6px; }
@@ -65,8 +66,8 @@
 
   /* ---------------------------------------------------------------- sayfa başlığı */
   .phead { display: flex; align-items: flex-end; gap: 24px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
-  .phead .crumb { font-size: 12.5px; color: var(--text-3); margin-bottom: 6px; }
-  .phead h1 { font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; color: var(--navy); margin: 0 0 6px; }
+  .phead .crumb { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
+  .phead h1 { font: 400 34px/1.15 var(--serif); letter-spacing: -0.015em; color: var(--text); margin: 0 0 10px; }
   .phead p { margin: 0; color: var(--text-2); max-width: 68ch; }
   .phead .actions { margin-left: auto; display: flex; gap: 8px; flex: none; }
 
@@ -78,13 +79,14 @@
   .btn.sec:hover { border-color: var(--navy); color: var(--navy); }
   .btn.sm { height: 30px; padding: 0 12px; font-size: 13px; }
   .lnk { border: 0; background: none; padding: 0; color: var(--teal); cursor: pointer; font-weight: 500; }
-  .lnk:hover { text-decoration: underline; }
+  .lnk { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-2); }
+  .lnk:hover { text-decoration-color: currentColor; }
   select { height: 30px; border: 1px solid var(--border-2); background: var(--surface); padding: 0 28px 0 10px; border-radius: var(--r-sm); font-size: 13px; color: var(--text); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2364748b' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
   kbd { font: 11px var(--mono); border: 1px solid var(--border-2); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--text-2); background: var(--surface); }
 
   .switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; color: var(--text); }
   .switch input { appearance: none; margin: 0; width: 32px; height: 18px; border-radius: 9px; background: var(--border-2); position: relative; cursor: pointer; transition: background var(--ease); flex: none; }
-  .switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(23, 43, 77, .25); transition: transform var(--ease); }
+  .switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(27, 27, 26, .25); transition: transform var(--ease); }
   .switch input:checked { background: var(--teal); }
   .switch input:checked::after { transform: translateX(14px); }
   .switch small { display: block; color: var(--text-2); font-size: 12px; line-height: 1.4; }
@@ -95,13 +97,13 @@
   .badge.mid { background: var(--warning-soft); color: var(--warning-text); }
   .badge.low { background: var(--bg); color: var(--text-2); }
   .tag { font: 12.5px var(--mono); color: var(--navy); background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
-  .tag.m6 { color: var(--danger-text); background: var(--danger-soft); border-color: #f1d3d2; }
+  .tag.m6 { color: var(--danger-text); background: var(--danger-soft); border-color: #e6cbc6; }
 
   .note { display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--r); border: 1px solid; font-size: 13.5px; line-height: 1.55; }
   .note svg { margin-top: 2px; }
   .note b { display: block; font-weight: 600; margin-bottom: 2px; }
-  .note.danger { background: var(--danger-soft); border-color: #f1d3d2; color: var(--danger-text); }
-  .note.danger b { color: #8f3230; }
+  .note.danger { background: var(--danger-soft); border-color: #e6cbc6; color: var(--danger-text); }
+  .note.danger b { color: #7f2f29; }
   .note.info { background: var(--surface); border-color: var(--border); color: var(--text-2); }
   .note.info b { color: var(--text); }
   .note[hidden] { display: none; }
@@ -130,7 +132,7 @@
   .steps li.now { color: var(--navy); }
   .steps li.now::before { border-color: var(--navy); color: var(--navy); box-shadow: 0 0 0 3px var(--teal-soft); }
   .steps li.done { color: var(--text); }
-  .steps li.done::before { content: "✓"; background: var(--teal); border-color: var(--teal); color: #fff; }
+  .steps li.done::before { content: "✓"; background: var(--navy); border-color: var(--navy); color: #fff; }
 
   /* ---------------------------------------------------------------- çalışma alanı */
   .work { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); overflow: hidden; }
@@ -171,7 +173,7 @@
   .result[hidden] { display: none; }
   .sumbar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 32px; align-items: center; padding: 20px 24px; }
   .sumbar .lead { font-size: 15px; color: var(--text); }
-  .sumbar .lead strong { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: var(--navy); margin-right: 6px; vertical-align: -2px; }
+  .sumbar .lead strong { font: 400 38px/1 var(--serif); letter-spacing: -0.02em; color: var(--text); margin-right: 8px; vertical-align: -3px; }
   .sumbar .lead small { display: block; color: var(--text-2); font-size: 12.5px; margin-top: 2px; }
   .dist .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--bg); gap: 2px; }
   .dist .bar i { display: block; height: 100%; }
@@ -187,7 +189,7 @@
   .tscroll { overflow-x: auto; }
 
   section.sec { margin-top: 40px; }
-  section.sec > h2 { font-size: 16px; font-weight: 600; color: var(--navy); margin: 0 0 4px; letter-spacing: -0.01em; }
+  section.sec > h2 { font: 400 24px/1.25 var(--serif); color: var(--text); margin: 0 0 6px; letter-spacing: -0.01em; }
   section.sec > p { margin: 0 0 16px; color: var(--text-2); max-width: 70ch; }
 
   /* ---------------------------------------------------------------- dosya */
@@ -204,7 +206,7 @@
   .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .facts div { padding: 18px 24px; }
   .facts div + div { border-left: 1px solid var(--border); }
-  .facts strong { display: block; font-size: 22px; font-weight: 600; color: var(--navy); letter-spacing: -0.015em; }
+  .facts strong { display: block; font: 400 30px/1.15 var(--serif); color: var(--text); letter-spacing: -0.015em; }
   .facts small { color: var(--text-2); font-size: 12.5px; }
   .fileinfo { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-2); flex-wrap: wrap; }
   .fileinfo .btn { margin-left: auto; }
@@ -221,7 +223,7 @@
   @media (max-width: 880px) {
     .app { grid-template-columns: 1fr; }
     .side { position: fixed; inset: 0 auto 0 0; width: 272px; z-index: 30; transform: translateX(-100%); transition: transform 200ms ease; box-shadow: none; }
-    .side.open { transform: none; box-shadow: 0 0 0 100vmax rgba(23, 43, 77, .28); }
+    .side.open { transform: none; box-shadow: 0 0 0 100vmax rgba(27, 27, 26, .28); }
     .mbar { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; }
     .mbar .logo { padding: 0; border: 0; }
     .mbar button { margin-left: auto; width: 36px; height: 36px; border: 1px solid var(--border-2); background: var(--surface); border-radius: var(--r-sm); display: grid; place-items: center; cursor: pointer; }
@@ -270,7 +272,7 @@
   <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></symbol>
   <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 3v7.5M5 7.5l3 3 3-3M3 13h10"/></symbol>
 </svg>
-<template id="logo-mark"><span class="mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="2.2" rx=".6" fill="#fff"/><rect x="2" y="7" width="7.5" height="2.2" rx=".6" fill="#7fb6c5"/><rect x="2" y="11" width="10" height="2.2" rx=".6" fill="#fff"/></svg></span></template>
+<template id="logo-mark"><span class="mark" aria-hidden="true">K</span></template>
 
 <div class="mbar">
   <a class="logo" href="/"><span data-logo></span><span><b>Kalkan</b></span></a>
@@ -282,8 +284,8 @@
     <a class="logo" href="/"><span data-logo></span><span><b>Kalkan</b><small>KVKK veri koruma</small></span></a>
     <nav class="menu" aria-label="Ana menü">
       <div class="grp">Çalışma alanı</div>
-      <a href="/#mesaj" data-view="mesaj"><svg class="i"><use href="#i-msg"/></svg>Mesaj tarama</a>
-      <a href="/#dosya" data-view="dosya"><svg class="i"><use href="#i-file"/></svg>Dosya gizleme</a>
+      <a href="/uygulama#mesaj" data-view="mesaj"><svg class="i"><use href="#i-msg"/></svg>Mesaj tarama</a>
+      <a href="/uygulama#dosya" data-view="dosya"><svg class="i"><use href="#i-file"/></svg>Dosya gizleme</a>
       <div class="grp">Yönetim</div>
       <a href="/panel"><svg class="i"><use href="#i-chart"/></svg>Genel bakış</a>
       <a href="/panel#sozluk"><svg class="i"><use href="#i-book"/></svg>Şirket sözlüğü</a>
@@ -397,7 +399,7 @@
             <div class="col">
               <div class="chead"><h2>Okunacak hâli</h2><div class="r"><button class="btn sec sm" id="copyBackBtn" hidden><svg class="i"><use href="#i-copy"/></svg>Kopyala</button></div></div>
               <div class="doc" id="restored" style="min-height:200px">
-                <div class="empty"><b>Geri çevrilecek cevap yok</b>Geri çevrilen değerler açık mavi zeminle işaretlenir.</div>
+                <div class="empty"><b>Geri çevrilecek cevap yok</b>Geri çevrilen değerler açık zeminle işaretlenir.</div>
               </div>
             </div>
           </div>
@@ -473,16 +475,16 @@ const TYPE = {
   TICARI_SIR: "Ticari bilgi", SOZLUK: "Şirket sözlüğü terimi",
 };
 const CATS = {
-  m6:     { label: "Özel nitelikli (md. 6)", color: "#be4b49", sev: "high", rank: 0, types: ["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"] },
-  kimlik: { label: "Kimlik / finansal",      color: "#172b4d", sev: "high", rank: 1, types: ["TC", "IBAN", "KART", "VKN"] },
-  kisi:   { label: "Kişi / iletişim",        color: "#24748a", sev: "mid",  rank: 2, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
-  ticari: { label: "Ticari bilgi",           color: "#b9852e", sev: "mid",  rank: 3, types: ["TICARI_SIR", "SOZLUK"] },
+  m6:     { label: "Özel nitelikli (md. 6)", color: "#a8413c", sev: "high", rank: 0, types: ["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"] },
+  kimlik: { label: "Kimlik / finansal",      color: "#1b1b1a", sev: "high", rank: 1, types: ["TC", "IBAN", "KART", "VKN"] },
+  kisi:   { label: "Kişi / iletişim",        color: "#8a8378", sev: "mid",  rank: 2, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
+  ticari: { label: "Ticari bilgi",           color: "#a07a3c", sev: "mid",  rank: 3, types: ["TICARI_SIR", "SOZLUK"] },
 };
 const catOf = (t) => Object.values(CATS).find((c) => c.types.includes(t)) || CATS.kisi;
 const SEV = { high: ["Yüksek", "high"], mid: ["Orta", "mid"] };
 const LAYER = {
-  regex: ["Desen + sağlama", "#172b4d"], isim: ["İsim listesi", "#8492a6"],
-  sozluk: ["Şirket sözlüğü", "#b9852e"], llm: ["Bağlamsal model", "#24748a"],
+  regex: ["Desen + sağlama", "#1b1b1a"], isim: ["İsim listesi", "#9a958c"],
+  sozluk: ["Şirket sözlüğü", "#a07a3c"], llm: ["Bağlamsal model", "#8a8378"],
 };
 // Tüm örnekler uydurmadır; TC/IBAN/VKN algoritmik olarak geçerli ama kimseye ait değildir.
 const SAMPLES = {
@@ -626,7 +628,7 @@ async function scan() {
     }
 
     $("findings").innerHTML = sorted.map((f) => {
-      const c = catOf(f.type), [sev, cls] = SEV[c.sev], [lname, lcolor] = LAYER[f.source] || [f.source, "#8492a6"];
+      const c = catOf(f.type), [sev, cls] = SEV[c.sev], [lname, lcolor] = LAYER[f.source] || [f.source, "#9a958c"];
       return `<tr>
         <td><span class="badge ${cls}">${sev}</span></td>
         <td><span class="tag${f.special ? " m6" : ""}">${esc(f.tag)}</span></td>
@@ -739,7 +741,7 @@ $("resetBtn").onclick = async () => {
   await api(`/reset/${SESSION}`, { method: "POST" }).catch(() => {});
   last = null; $("result").hidden = true; $("reply").value = ""; $("outgoing").innerHTML = "";
   $("preview").innerHTML = `<div class="empty"><b>Oturum temizlendi</b>Eşleme tablosu bellekten silindi. Önceki etiketler artık geri çevrilemez.</div>`;
-  $("restored").innerHTML = `<div class="empty"><b>Geri çevrilecek cevap yok</b>Geri çevrilen değerler açık mavi zeminle işaretlenir.</div>`;
+  $("restored").innerHTML = `<div class="empty"><b>Geri çevrilecek cevap yok</b>Geri çevrilen değerler açık zeminle işaretlenir.</div>`;
   $("copyBackBtn").hidden = true; selectTab(false); setStep(0);
 };
 $("sample").onchange = (e) => { if (e.target.value) { $("input").value = SAMPLES[e.target.value]; e.target.value = ""; $("input").focus(); } };

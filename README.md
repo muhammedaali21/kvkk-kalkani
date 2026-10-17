@@ -77,7 +77,8 @@ cd backend
 uvicorn kalkan.api:app --host 127.0.0.1 --port 8765
 ```
 
-- Demo: http://127.0.0.1:8765/
+- Landing page: http://127.0.0.1:8765/
+- App (message & file masking): http://127.0.0.1:8765/uygulama
 - Admin panel: http://127.0.0.1:8765/panel
 - Extension: `chrome://extensions` → Developer mode → *Load unpacked* → select `extension/`
 

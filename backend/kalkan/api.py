@@ -164,6 +164,11 @@ async def chat_completions(request: Request) -> JSONResponse:
 
 
 @app.get("/")
+def landing_page() -> FileResponse:
+    return FileResponse(DEMO_DIR / "landing.html")
+
+
+@app.get("/uygulama")
 def demo_page() -> FileResponse:
     return FileResponse(DEMO_DIR / "index.html")
 

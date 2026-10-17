@@ -5,13 +5,13 @@
   z-index: 2147483647;
   max-width: 400px;
   padding: 12px 16px 12px 14px;
-  border: 1px solid #e3e8ef;
-  border-left: 3px solid #24748a;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #1f2937;
-  font: 400 13.5px/1.5 Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
-  box-shadow: 0 4px 16px rgba(23, 43, 77, 0.12);
+  border: 1px solid #dedbd5;
+  border-left: 3px solid #1b1b1a;
+  border-radius: 3px;
+  background: #fbfbfa;
+  color: #1b1b1a;
+  font: 400 13.5px/1.5 Manrope, "Segoe UI", system-ui, -apple-system, sans-serif;
+  box-shadow: 0 4px 16px rgba(27, 27, 26, 0.12);
 }
 .kvkk-kalkan-toast::before {
   content: "Kalkan";
@@ -20,9 +20,9 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #64748b;
+  color: #625e57;
   margin-bottom: 2px;
 }
 .kvkk-kalkan-toast[hidden] { display: none; }
-.kvkk-kalkan-toast[data-kind="ok"] { border-left-color: #25836a; }
-.kvkk-kalkan-toast[data-kind="error"] { border-left-color: #be4b49; background: #fbeceb; color: #8f3230; border-color: #f1d3d2; }
+.kvkk-kalkan-toast[data-kind="ok"] { border-left-color: #3f7a52; }
+.kvkk-kalkan-toast[data-kind="error"] { border-left-color: #a8413c; background: #f5e6e3; color: #7f2f29; border-color: #e6cbc6; }
