@@ -1,0 +1,273 @@
+﻿<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KVKK Kalkanı — Demo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #14171c; --muted: #5d6673; --line: #e3e6eb;
+    --accent: #0f6b5c; --accent-ink: #ffffff; --tag: #e7f3f0; --tag-ink: #0f5c4f;
+    --danger: #c62828; --danger-bg: #fdecec; --warn-bg: #fff6e0; --warn-ink: #8a5a00;
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1216; --card: #171b21; --ink: #e8ebef; --muted: #98a2b0; --line: #2a3039;
+      --accent: #3fb8a0; --accent-ink: #06201b; --tag: #173a33; --tag-ink: #9fe3d4;
+      --danger: #ff7b7b; --danger-bg: #3a1717; --warn-bg: #3a2e12; --warn-ink: #ffd27a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 Inter, system-ui, sans-serif; }
+  header { display: flex; align-items: center; gap: 16px; padding: 18px 28px; border-bottom: 1px solid var(--line); background: var(--card); flex-wrap: wrap; }
+  header h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  header nav { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  a { color: var(--accent); }
+  .pill { font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .pill.ok { color: var(--accent); border-color: var(--accent); }
+  .pill.bad { color: var(--danger); border-color: var(--danger); }
+  main { padding: 24px 28px 48px; max-width: 1500px; margin: 0 auto; }
+  .flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  @media (max-width: 1000px) { .flow { grid-template-columns: 1fr; } main, header { padding-left: 16px; padding-right: 16px; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0; display: flex; gap: 8px; align-items: center; }
+  .step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 12px; }
+  textarea, .out { width: 100%; min-height: 260px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; font: 14px/1.6 var(--mono); background: var(--bg); color: var(--ink); resize: vertical; white-space: pre-wrap; word-break: break-word; }
+  .out { overflow: auto; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  button { font: inherit; font-size: 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); padding: 8px 14px; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button:disabled { opacity: .5; cursor: wait; }
+  label.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; color: var(--muted); cursor: pointer; }
+  .tag { background: var(--tag); color: var(--tag-ink); border-radius: 4px; padding: 0 3px; font-weight: 500; }
+  .tag.special { background: var(--danger-bg); color: var(--danger); outline: 1px solid var(--danger); }
+  .restored { background: var(--warn-bg); color: var(--warn-ink); border-radius: 4px; padding: 0 2px; }
+  .meta { font-size: 13px; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--tag); color: var(--tag-ink); }
+  .chip.special { background: var(--danger-bg); color: var(--danger); }
+  .notice { font-size: 13px; padding: 8px 12px; border-radius: 8px; background: var(--danger-bg); color: var(--danger); }
+  .notice[hidden] { display: none; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; }
+  td.v { font-family: var(--mono); word-break: break-all; }
+  section.extra { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 1000px) { section.extra { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🛡️ KVKK Kalkanı</h1>
+    <p>Çalışan yapay zekâyı her zamanki gibi kullanır — hassas veri bilgisayardan hiç çıkmaz.</p>
+  </div>
+  <nav>
+    <span id="status" class="pill">sunucu kontrol ediliyor…</span>
+    <span id="model" class="pill">Gemma: ?</span>
+    <a href="/eski/panel">Yönetici paneli →</a>
+  </nav>
+</header>
+
+<main>
+  <div class="flow">
+    <div class="card">
+      <h2><span class="step">1</span> Çalışanın yazdığı</h2>
+      <textarea id="input" spellcheck="false"></textarea>
+      <div class="row">
+        <button class="primary" id="maskBtn">Kalkandan geçir</button>
+        <button data-sample="iade">Örnek: iade</button>
+        <button data-sample="ik">Örnek: İK</button>
+        <button data-sample="hukuk">Örnek: hukuk</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="useLlm" checked> Gemma katmanı (bağlam, KVKK m.6, ticari sır)</label>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">2</span> Yapay zekânın gördüğü</h2>
+      <div class="out" id="masked"><span class="meta">Metni kalkandan geçirin.</span></div>
+      <div class="meta" id="maskMeta"></div>
+      <div class="chips" id="chips"></div>
+      <div class="row">
+        <button id="copyBtn">Maskeli metni kopyala</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">3</span> Yapay zekânın cevabı → geri çevrilmiş</h2>
+      <textarea id="reply" spellcheck="false" placeholder="ChatGPT'nin cevabını buraya yapıştırın…" style="min-height:120px"></textarea>
+      <div class="row">
+        <button class="primary" id="unmaskBtn">Geri çevir</button>
+        <button id="fakeReplyBtn" title="İnternet yoksa demo için örnek cevap üretir">Örnek cevap üret</button>
+      </div>
+      <div class="out" id="restored" style="min-height:120px"><span class="meta">Cevaptaki [KISI_1] gibi etiketler burada gerçek değerlere döner.</span></div>
+    </div>
+  </div>
+
+  <section class="extra">
+    <div class="card">
+      <h2>Bu oturumun eşleme tablosu (sadece bu bilgisayarda)</h2>
+      <table><thead><tr><th>Etiket</th><th>Gerçek değer</th></tr></thead><tbody id="mapping"><tr><td colspan="2" class="meta">Henüz yok.</td></tr></tbody></table>
+      <div class="row"><button id="resetBtn">Oturumu sıfırla</button></div>
+    </div>
+    <div class="card">
+      <h2>Excel / CSV müşteri listesi maskele</h2>
+      <p class="meta" style="margin:0">Aynı müşteri dosya boyunca aynı etiketi alır; yapay zekâ gruplama ve analiz yapmaya devam edebilir. Tutar gibi sayısal sütunlar bozulmaz.</p>
+      <div class="row">
+        <input type="file" id="file" accept=".csv,.xlsx,.txt">
+        <button class="primary" id="fileBtn">Maskele ve indir</button>
+      </div>
+      <div class="meta" id="fileReport"></div>
+      <div class="notice" id="fileErr" hidden></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const API = location.origin.startsWith("http") ? location.origin : "http://127.0.0.1:8765";
+const SESSION = "demo-" + Math.random().toString(36).slice(2, 10);
+const SPECIAL = new Set(["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"]);
+const LABELS = {
+  TC: "TC kimlik", IBAN: "IBAN", KART: "Kredi kartı", VKN: "Vergi no", EPOSTA: "E-posta",
+  TELEFON: "Telefon", PLAKA: "Plaka", ADRES: "Adres", KISI: "Kişi", KURUM_KISI: "Dolaylı kimlik",
+  SAGLIK: "Sağlık (m.6)", DIN_INANC: "Din/inanç (m.6)", SIYASI: "Siyasi (m.6)", SENDIKA: "Sendika (m.6)",
+  CEZA: "Ceza (m.6)", BIYOMETRIK: "Biyometrik (m.6)", TICARI_SIR: "Ticari sır", SOZLUK: "Şirket sözlüğü",
+};
+// Tüm örnekler uydurmadır; TC/IBAN algoritmik olarak geçerli ama kimseye ait değildir.
+const SAMPLES = {
+  iade: `Müşterimiz Ahmet Yılmaz (TC: 12345678950) iade istiyor. Telefon 0532 123 45 67,
+e-posta ahmet.yilmaz@gmail.com. İade TR18 0006 2001 1900 0006 6723 15 IBAN'ına.
+Adresi Cumhuriyet Mahallesi Gazi Cad. No: 12 Elazığ. Ayşe Hanım aradı.
+Sipariş no 12345678901. Kendisi şeker hastası; kâr marjımız %18.
+
+Bu müşteriye nazik ama kısa bir iade onay e-postası yazar mısın?`,
+  ik: `Performans değerlendirmesi taslağı:
+Çalışan: Elif Demir, muhasebe. Brüt maaşı 64.500 TL, zam talebi var.
+Geçen ay iki hafta depresyon tedavisi nedeniyle raporluydu.
+Sendika üyesi olduğu için yöneticisi Kerem Aksoy çekinceli.
+İletişim: elif.demir@ornekfirma.com.tr, 0544 987 65 43.
+
+Bunu profesyonel bir performans notuna çevir.`,
+  hukuk: `Müvekkilimiz Mehmet Kaya (TC 10000000146) aleyhine açılan alacak davası hakkında.
+Karşı taraf Yıldız Lojistik A.Ş., vergi kimlik no 4840847211.
+Müvekkilin 2019'da dolandırıcılıktan sabıkası var, bunu karşı taraf bilmiyor.
+Uzlaşma için gizli teklif üst sınırımız 850.000 TL.
+
+Dilekçe için savunma taslağı hazırla.`,
+};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let lastFindings = [];
+
+async function api(path, opts = {}) {
+  const r = await fetch(API + path, { headers: { "Content-Type": "application/json" }, ...opts });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+  return r.json();
+}
+
+async function health() {
+  try {
+    const h = await api("/health");
+    $("status").textContent = "sunucu: çalışıyor (local)"; $("status").className = "pill ok";
+    $("model").textContent = h.llm ? `Gemma: ${h.model} hazır` : `Gemma: kapalı (regex katmanı)`;
+    $("model").className = "pill " + (h.llm ? "ok" : "bad");
+  } catch {
+    $("status").textContent = "sunucu: kapalı"; $("status").className = "pill bad";
+  }
+}
+
+function highlightTags(text, typeOf) {
+  return esc(text).replace(/\[([A-Z][A-Z_]*)_(\d+)\]/g, (m, t) =>
+    `<span class="tag${SPECIAL.has(t) ? " special" : ""}" title="${LABELS[t] || t}">${m}</span>`);
+}
+
+async function doMask() {
+  const btn = $("maskBtn"); btn.disabled = true; btn.textContent = "Taranıyor…";
+  try {
+    const r = await api("/mask", { method: "POST", body: JSON.stringify({ text: $("input").value, session: SESSION, use_llm: $("useLlm").checked }) });
+    lastFindings = r.findings;
+    $("masked").innerHTML = highlightTags(r.masked);
+    const total = r.findings.length;
+    const special = r.findings.filter((f) => f.special).length;
+    $("maskMeta").textContent = `${total} hassas veri maskelendi · ${r.ms} ms · ${r.llm_used ? "Gemma katmanı kullanıldı" : "sadece regex + isim katmanı"}${special ? ` · ${special} özel nitelikli (KVKK m.6)` : ""}`;
+    $("chips").innerHTML = Object.entries(r.counts).map(([t, n]) =>
+      `<span class="chip${SPECIAL.has(t) ? " special" : ""}">${LABELS[t] || t} × ${n}</span>`).join("");
+    $("masked").dataset.raw = r.masked;
+    loadMapping();
+  } catch (e) {
+    $("masked").innerHTML = `<div class="notice">Kalkan sunucusuna ulaşılamadı. Güvenli taraf: metin gönderilmedi. (${esc(e.message)})</div>`;
+  } finally { btn.disabled = false; btn.textContent = "Kalkandan geçir"; }
+}
+
+async function doUnmask() {
+  const raw = $("reply").value;
+  const r = await api("/unmask", { method: "POST", body: JSON.stringify({ text: raw, session: SESSION }) });
+  // Geri çevrilen kısımları vurgula: etiketleri tek tek yerine koy.
+  const map = await api(`/mapping/${SESSION}`);
+  $("restored").innerHTML = esc(raw).replace(/\[([A-Z][A-Z_]*)_(\d+)\]/g, (m) =>
+    map[m] !== undefined ? `<span class="restored" title="${m}">${esc(map[m])}</span>` : m);
+  $("restored").dataset.raw = r.text;
+}
+
+async function loadMapping() {
+  const map = await api(`/mapping/${SESSION}`);
+  const rows = Object.entries(map);
+  $("mapping").innerHTML = rows.length
+    ? rows.map(([t, v]) => `<tr><td>${highlightTags(t)}</td><td class="v">${esc(v)}</td></tr>`).join("")
+    : `<tr><td colspan="2" class="meta">Henüz yok.</td></tr>`;
+}
+
+function fakeReply() {
+  const tag = (t) => (lastFindings.find((f) => f.type === t) || {}).tag;
+  const kisi = tag("KISI"), iban = tag("IBAN"), tel = tag("TELEFON"), mail = tag("EPOSTA");
+  if (!lastFindings.length) { $("reply").value = "Önce bir metni kalkandan geçirin."; return; }
+  $("reply").value = [
+    `Konu: İade talebiniz onaylandı`,
+    ``,
+    `Sayın ${kisi || "müşterimiz"},`,
+    ``,
+    `İade talebiniz incelenmiş ve onaylanmıştır.` + (iban ? ` Tutar 3-5 iş günü içinde ${iban} numaralı hesabınıza aktarılacaktır.` : ""),
+    tel || mail ? `Sorularınız için size ${[tel, mail].filter(Boolean).join(" veya ")} üzerinden ulaşabiliriz.` : ``,
+    ``,
+    `Saygılarımızla,`,
+    `Müşteri Hizmetleri`,
+  ].join("\n");
+}
+
+async function doFile() {
+  const f = $("file").files[0];
+  $("fileErr").hidden = true;
+  if (!f) { $("fileErr").textContent = "Önce bir dosya seçin."; $("fileErr").hidden = false; return; }
+  const fd = new FormData();
+  fd.append("file", f); fd.append("session", SESSION); fd.append("use_llm", $("useLlm").checked ? "true" : "false");
+  try {
+    const r = await fetch(API + "/mask-file", { method: "POST", body: fd });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+    const report = JSON.parse(r.headers.get("X-Kalkan-Report") || "{}");
+    const blob = await r.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (r.headers.get("Content-Disposition") || "").match(/filename="(.+)"/)?.[1] || "maskeli";
+    a.click();
+    $("fileReport").textContent = `${report.toplam} hassas hücre/değer maskelendi: ` +
+      Object.entries(report.bulgular || {}).map(([t, n]) => `${LABELS[t] || t} ${n}`).join(", ");
+    loadMapping();
+  } catch (e) { $("fileErr").textContent = e.message; $("fileErr").hidden = false; }
+}
+
+$("maskBtn").onclick = doMask;
+$("unmaskBtn").onclick = doUnmask;
+$("fakeReplyBtn").onclick = fakeReply;
+$("fileBtn").onclick = doFile;
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("masked").dataset.raw || "");
+$("resetBtn").onclick = async () => { await api(`/reset/${SESSION}`, { method: "POST" }); loadMapping(); };
+document.querySelectorAll("[data-sample]").forEach((b) => (b.onclick = () => ($("input").value = SAMPLES[b.dataset.sample])));
+$("input").value = SAMPLES.iade;
+health();
+</script>
+</body>
+</html>

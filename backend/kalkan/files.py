@@ -28,9 +28,10 @@ HEADER_HINTS: list[tuple[str, str]] = [
 
 
 def column_hint(header: str) -> str | None:
-    h = tr_lower(str(header))
+    # Başlık hem Türkçe ("İsim" → "isim") hem İngilizce kurallarla ("IBAN" → "iban") küçültülür.
+    variants = (tr_lower(str(header)), str(header).lower())
     for pattern, typ in HEADER_HINTS:
-        if re.search(pattern, h):
+        if any(re.search(pattern, h) for h in variants):
             return typ
     return None
 

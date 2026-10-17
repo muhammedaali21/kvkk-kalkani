@@ -173,6 +173,17 @@ def panel_page() -> FileResponse:
     return FileResponse(DEMO_DIR / "panel.html")
 
 
+# İlk arayüzün yedeği (geri dönmek gerekirse).
+@app.get("/eski")
+def old_demo_page() -> FileResponse:
+    return FileResponse(DEMO_DIR / "v1" / "index.html")
+
+
+@app.get("/eski/panel")
+def old_panel_page() -> FileResponse:
+    return FileResponse(DEMO_DIR / "v1" / "panel.html")
+
+
 def _ascii(s: str) -> str:
     table = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
     return "".join(c if c.isascii() and (c.isalnum() or c in "-_") else "_" for c in s.translate(table))

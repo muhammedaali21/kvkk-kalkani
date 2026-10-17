@@ -1,0 +1,143 @@
+﻿<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KVKK Kalkanı — Yönetici Paneli</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #14171c; --muted: #5d6673; --line: #e3e6eb;
+    --accent: #0f6b5c; --accent-ink: #fff; --bar: #0f6b5c; --danger: #c62828; --danger-bg: #fdecec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1216; --card: #171b21; --ink: #e8ebef; --muted: #98a2b0; --line: #2a3039;
+            --accent: #3fb8a0; --accent-ink: #06201b; --bar: #3fb8a0; --danger: #ff7b7b; --danger-bg: #3a1717; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 Inter, system-ui, sans-serif; }
+  header { display: flex; align-items: center; gap: 16px; padding: 18px 28px; border-bottom: 1px solid var(--line); background: var(--card); flex-wrap: wrap; }
+  header h1 { font-size: 20px; margin: 0; }
+  header a { margin-left: auto; color: var(--accent); }
+  main { padding: 24px 28px 48px; max-width: 1200px; margin: 0 auto; display: grid; gap: 18px; }
+  @media (max-width: 800px) { main, header { padding-left: 16px; padding-right: 16px; } }
+  .hero { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+  .hero .big { font-size: 40px; font-weight: 700; color: var(--accent); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .hero p { margin: 6px 0 0; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 800px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .tile .n { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .l { font-size: 13px; color: var(--muted); }
+  .tile.special .n { color: var(--danger); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; }
+  .bar { display: grid; grid-template-columns: 140px 1fr 48px; gap: 10px; align-items: center; font-size: 14px; margin: 6px 0; }
+  .bar .track { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar .fill { height: 100%; background: var(--bar); border-radius: 99px; }
+  .bar.special .fill { background: var(--danger); }
+  .bar .num { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+  textarea { width: 100%; min-height: 180px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; font: 14px/1.6 ui-monospace, Consolas, monospace; background: var(--bg); color: var(--ink); }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); padding: 8px 14px; cursor: pointer; font-weight: 600; }
+  .meta { font-size: 13px; color: var(--muted); }
+  .privacy { font-size: 13px; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🛡️ KVKK Kalkanı · Yönetici Paneli</h1>
+  <a href="/eski">← Demo</a>
+</header>
+<main>
+  <div class="hero">
+    <div class="big" id="today">—</div>
+    <p>Bugün bu kadar hassas veri şirketten çıkmadan durduruldu.</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="n" id="total">—</div><div class="l">Toplam maskelenen veri</div></div>
+    <div class="tile"><div class="n" id="requests">—</div><div class="l">Taranan mesaj</div></div>
+    <div class="tile"><div class="n" id="protected">—</div><div class="l">Hassas veri içeren mesaj</div></div>
+    <div class="tile special"><div class="n" id="special">—</div><div class="l">Özel nitelikli veri (KVKK m.6)</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Veri türüne göre (tüm zamanlar)</h2>
+      <div id="types" class="meta">Yükleniyor…</div>
+    </div>
+    <div class="card">
+      <h2>Son 7 gün</h2>
+      <div id="days" class="meta">Yükleniyor…</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Ticari sır sözlüğü</h2>
+    <p class="meta" style="margin-top:0">Her satıra bir terim: müşteri firma adları, gizli proje adları, tedarikçiler. Bu terimler çalışanların mesajlarında otomatik maskelenir.</p>
+    <textarea id="sozluk" placeholder="Yıldız Lojistik&#10;Proje Anka&#10;Mavi Tekstil"></textarea>
+    <div style="display:flex; gap:12px; align-items:center; margin-top:10px">
+      <button id="saveBtn">Kaydet</button><span class="meta" id="saved"></span>
+    </div>
+  </div>
+
+  <p class="privacy">Bu panel kimin ne yazdığını göstermez. Sunucuda yalnızca veri türü ve sayı tutulur; mesaj içerikleri ve gerçek değerler hiçbir dosyaya yazılmaz.</p>
+</main>
+
+<script>
+const API = location.origin.startsWith("http") ? location.origin : "http://127.0.0.1:8765";
+const SPECIAL = new Set(["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"]);
+const LABELS = {
+  TC: "TC kimlik", IBAN: "IBAN", KART: "Kredi kartı", VKN: "Vergi no", EPOSTA: "E-posta",
+  TELEFON: "Telefon", PLAKA: "Plaka", ADRES: "Adres", KISI: "Kişi", KURUM_KISI: "Dolaylı kimlik",
+  SAGLIK: "Sağlık", DIN_INANC: "Din / inanç", SIYASI: "Siyasi görüş", SENDIKA: "Sendika",
+  CEZA: "Ceza / sabıka", BIYOMETRIK: "Biyometrik", TICARI_SIR: "Ticari sır", SOZLUK: "Şirket sözlüğü",
+};
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => new Intl.NumberFormat("tr-TR").format(n || 0);
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+function bars(entries, specialFn) {
+  const max = Math.max(1, ...entries.map(([, n]) => n));
+  return entries.map(([label, n, special]) =>
+    `<div class="bar${special ? " special" : ""}"><span>${esc(label)}</span><div class="track"><div class="fill" style="width:${(n / max) * 100}%"></div></div><span class="num">${fmt(n)}</span></div>`
+  ).join("") || `<span class="meta">Henüz veri yok.</span>`;
+}
+
+async function load() {
+  const s = await (await fetch(API + "/stats")).json();
+  $("today").textContent = fmt(s.bugun.toplam);
+  $("total").textContent = fmt(s.toplam);
+  $("requests").textContent = fmt(s.istek);
+  $("protected").textContent = fmt(s.korunan_istek);
+  $("special").textContent = fmt(s.ozel_nitelikli);
+  const types = Object.entries(s.turler).sort((a, b) => b[1] - a[1]).map(([t, n]) => [LABELS[t] || t, n, SPECIAL.has(t)]);
+  $("types").innerHTML = bars(types);
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toLocaleDateString("sv-SE");
+    days.push([d.toLocaleDateString("tr-TR", { weekday: "short", day: "numeric", month: "short" }), (s.gunluk[key] || {}).toplam || 0]);
+  }
+  $("days").innerHTML = bars(days);
+}
+
+async function loadSozluk() {
+  const s = await (await fetch(API + "/sozluk")).json();
+  $("sozluk").value = s.terimler.join("\n");
+}
+
+$("saveBtn").onclick = async () => {
+  const terimler = $("sozluk").value.split("\n").map((t) => t.trim()).filter(Boolean);
+  const r = await fetch(API + "/sozluk", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ terimler }) });
+  const s = await r.json();
+  $("saved").textContent = `${s.terimler.length} terim kaydedildi.`;
+};
+
+load(); loadSozluk();
+setInterval(load, 5000);
+</script>
+</body>
+</html>
