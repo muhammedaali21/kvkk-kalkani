@@ -85,6 +85,8 @@ def detect_llm(text: str) -> list[Finding] | None:
                 "model": MODEL,
                 "stream": False,
                 "format": "json",
+                # Gemma 4 varsayılan olarak önce uzun bir "düşünme" metni üretir; bu iş için gereksiz ve yavaş.
+                "think": False,
                 "options": {"temperature": 0},
                 "messages": [
                     {"role": "system", "content": SYSTEM_PROMPT},

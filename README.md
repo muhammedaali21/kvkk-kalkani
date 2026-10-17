@@ -34,18 +34,24 @@ If the local server is unreachable, the browser extension **does not send the me
 
 100 synthetic Turkish samples (customer service, HR, legal, mixed, and trap samples full of invalid ID numbers, order numbers, dates and city names). All IDs are algorithmically valid but randomly generated — no real personal data. Part of the name pool is deliberately *not* in our name list.
 
-See [benchmark/results.md](benchmark/results.md) for the latest run. Without Gemma (layers 1 + 1b):
+Full per-type table: [benchmark/results.md](benchmark/results.md). Gemma 4 = `gemma4` (e4b) via Ollama on a laptop RTX 4070.
 
-| | Regex only | + Name list |
-|---|---|---|
-| Recall (structured IDs, phones, e-mail, address) | 100% | 100% |
-| Recall (people) | 0% | 59% |
-| Recall (health / religion / union / criminal / trade secret) | 0% | 0% |
-| Overall recall | 40% | 63% |
-| Precision | 100% | 100% |
-| False masks in trap samples | 0 | 0 |
+| | Regex only | + Name list | + Gemma 4 (local) |
+|---|---|---|---|
+| Recall (IDs, IBAN, card, phone, e-mail, plate, address) | 100% | 100% | 100% |
+| Recall (people) | 0% | 59% | 97% |
+| Recall (health / religion / politics / union / criminal) | 0% | 0% | 100% |
+| Recall (trade secrets) | 0% | 0% | 100% |
+| **Overall recall** | 40% | 63% | **99%** |
+| Precision | 100% | 100% | 96% |
+| Unnecessary masks (of 100 samples) | 0 | 0 | 12 |
+| Avg. time / sample | <1 ms | <1 ms | ~480 ms |
 
-Rules catch the numbers; they cannot read context. The remaining gap — names outside the list, "şeker hastası", "kâr marjımız %18" — is exactly what the local Gemma layer is for. Run `python benchmark/evaluate.py` with Ollama running to get the (c) column.
+Rules catch the numbers; they cannot read context. Gemma closes the gap: names outside the list, "şeker hastası" (diabetic), "kâr marjımız %18" (our margin is 18%).
+
+What Gemma gets wrong, so you don't have to find out: 9 of its 12 unnecessary masks are plain invoice/budget amounts flagged as trade secrets, 4 are the harmless phrase "maaş hesabı" (salary account), 1 is the word "bayramda" (on the holiday) tagged as a person. It missed 3 names: "Eylül" (also the Turkish word for September), "Doruk" and "Çağan Yılmaz". We did **not** tune the prompt on this benchmark — that would just be overfitting.
+
+Implementation note: Gemma 4 "thinks" before answering by default. Turning it off (`think: false`) cut latency from ~14 s to ~1 s per message with the same findings on our acceptance sample.
 
 ## Limitations (honestly)
 
@@ -106,6 +112,10 @@ Any OpenAI client can use the shield by changing its base URL to `http://127.0.0
 ```bash
 cd backend && python tests/test_acceptance.py     # or: python -m pytest tests
 python benchmark/generate.py && python benchmark/evaluate.py
+
+# Extension end-to-end: real Chromium + the extension, chatgpt.com routed to a local mock page
+pip install playwright && python -m playwright install chromium
+python tests/extension/e2e_extension.py
 ```
 
 ## Project layout
