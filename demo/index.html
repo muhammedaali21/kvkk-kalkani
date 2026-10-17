@@ -240,6 +240,42 @@
   .ft-foot .warn { color: var(--danger-text); display: inline-flex; gap: 8px; align-items: center; }
   .ft-foot .acts { margin-left: auto; display: flex; gap: 16px; }
 
+  /* ---------------------------------------------------------------- dosya incelemesi */
+  .rv-head { display: flex; align-items: flex-end; gap: 24px; padding: 18px 20px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .rv-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+  .rv-head h3 { margin: 0 0 2px; font: 400 22px/1.25 var(--serif); word-break: break-word; }
+  .rv-head #rvMeta { font-size: 13px; color: var(--text-2); }
+  .rv-acts { margin-left: auto; display: flex; gap: 18px; font-size: 13px; flex-wrap: wrap; }
+  .rv-cat { padding: 6px 20px 10px; }
+  .rv-cat + .rv-cat { border-top: 1px solid var(--border); }
+  .rv-cat-h { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); padding: 12px 0 4px; }
+  .rv-cat.m6 .rv-cat-h { color: var(--danger-text); }
+  .rv-type { border-top: 1px solid var(--border); }
+  .rv-cat-h + .rv-type { border-top: 0; }
+  .rv-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; flex-wrap: wrap; }
+  .rv-row .chk { font-weight: 500; padding: 0; }
+  .rv-n { font-size: 12.5px; color: var(--text-2); }
+  .rv-tg { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 0; cursor: pointer; font-size: 12.5px; color: var(--text-2); }
+  .rv-tg:hover { color: var(--text); }
+  .rv-tg svg { width: 14px; height: 14px; transition: transform var(--ease); }
+  .rv-tg[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .rv-vals { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 2px 24px; padding: 0 0 10px 24px; max-height: 280px; overflow: auto; }
+  .rv-v { font-size: 13px; padding: 3px 0; min-width: 0; }
+  .rv-v .mono { font-family: var(--mono); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .rv-x { margin-left: auto; font: 11.5px var(--mono); color: var(--text-3); }
+  .rv-foot { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--surface-2); flex-wrap: wrap; border-radius: 0 0 var(--r) var(--r); position: sticky; bottom: 0; }
+  .rv-foot #rvCount { font-size: 13.5px; color: var(--text-2); }
+  .rv-foot #rvCount b { color: var(--text); font-weight: 600; }
+  .rv-foot .warn { color: var(--danger-text); display: inline-flex; gap: 8px; align-items: center; font-size: 13px; }
+  .rv-foot .sp { flex: 1; }
+  @media (max-width: 880px) {
+    .rv-acts { margin-left: 0; }
+    .rv-cat { padding: 6px 16px 10px; }
+    .rv-vals { padding-left: 0; grid-template-columns: 1fr; }
+    .rv-foot .sp { display: none; }
+    .rv-foot .btn { flex: 1; }
+  }
+
   footer.foot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 24px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-3); }
 
   /* ---------------------------------------------------------------- duyarlı */
@@ -452,7 +488,7 @@
           <div>
             <div class="crumb">Çalışma alanı</div>
             <h1>Dosya gizleme</h1>
-            <p>Müşteri listesi, sözleşme, dilekçe veya bordro gibi dosyaları yapay zekâ aracına yüklemeden önce buradan geçirin. Dosya aynı biçimde geri döner; aynı kişi her yerde aynı etiketi alır, tutar ve tarihler değişmez.</p>
+            <p>Müşteri listesi, sözleşme, dilekçe veya bordro gibi dosyaları yapay zekâ aracına yüklemeden önce buradan geçirin. Önce dosyada bulunan kişisel veriler listelenir; hangilerinin gizleneceğini siz seçersiniz. Dosya aynı biçimde geri döner.</p>
           </div>
         </header>
 
@@ -468,7 +504,32 @@
         <div class="note danger" id="fileErr" hidden style="margin-top:16px"><svg class="i"><use href="#i-alert"/></svg><div><b>Dosya işlenemedi</b><span id="fileErrText"></span></div></div>
         <div class="note danger" id="fileLeak" hidden style="margin-top:16px"><svg class="i"><use href="#i-alert"/></svg><div><b>Dosyayı yüklemeden önce kontrol edin</b><span id="fileLeakText"></span></div></div>
 
-        <div id="fileResult" hidden style="margin-top:24px" aria-live="polite">
+        <div id="review" hidden style="margin-top:24px; scroll-margin-top:24px" aria-live="polite">
+          <div class="panel rv">
+            <div class="rv-head">
+              <div>
+                <div class="rv-eyebrow">İnceleme · neyi gizleyeceğinizi seçin</div>
+                <h3 id="rvTitle"></h3>
+                <span id="rvMeta"></span>
+              </div>
+              <div class="rv-acts">
+                <button type="button" class="lnk" data-rv="all">Tümünü seç</button>
+                <button type="button" class="lnk" data-rv="high">Yalnızca yüksek önem</button>
+                <button type="button" class="lnk" data-rv="none">Hiçbirini seçme</button>
+              </div>
+            </div>
+            <div id="rvList"></div>
+            <div class="rv-foot">
+              <span id="rvCount"></span>
+              <span class="warn" id="rvWarn" hidden><svg class="i"><use href="#i-alert"/></svg><span></span></span>
+              <span class="sp"></span>
+              <button type="button" class="btn sec" id="rvCancel">Vazgeç</button>
+              <button type="button" class="btn" id="rvApply">Seçilenleri gizle ve indir</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="fileResult" hidden style="margin-top:24px; scroll-margin-top:24px" aria-live="polite">
           <div class="panel">
             <div class="facts">
               <div><strong id="fTotal">0</strong><small>değer gizlendi</small></div>
@@ -721,16 +782,138 @@ function fakeReply() {
 }
 
 // ---------------------------------------------------------------- dosya
-async function maskFile(f) {
-  $("fileErr").hidden = true; $("fileLeak").hidden = true; $("fileResult").hidden = true; $("fileProg").hidden = false;
-  $("dropTitle").textContent = `${f.name} işleniyor…`;
+// Adım 1: dosya incelenir (değiştirilmez), bulunan değerler listelenir.
+// Adım 2: kullanıcı seçer, yalnızca seçilenler gizlenir ve dosya indirilir.
+let review = null;          // /analyze-file yanıtı
+let picked = new Set();     // gizlenecek değerlerin anahtarları
+const fileErr = (e) => {
+  $("fileErrText").textContent = e.message === "Failed to fetch" ? "Yerel sunucuya ulaşılamadı." : e.message;
+  $("fileErr").hidden = false;
+};
+const unitOf = (rep) => {
+  const sheets = rep.sayfalar ? Object.values(rep.sayfalar) : [rep];
+  const rows = sheets.reduce((n, s) => n + (s.satir || 0), 0);
+  return rep.sayfa != null ? [rep.sayfa, "sayfa"] : rep.paragraf != null ? [rep.paragraf, "paragraf"] : [rows, "satır"];
+};
+
+async function analyzeFile(f) {
+  $("fileErr").hidden = true; $("fileLeak").hidden = true; $("fileResult").hidden = true; $("review").hidden = true;
+  $("fileProg").hidden = false;
+  $("dropTitle").textContent = `${f.name} inceleniyor…`;
   const fd = new FormData();
-  fd.append("file", f); fd.append("session", SESSION); fd.append("use_llm", $("useLlm").checked ? "true" : "false");
+  fd.append("file", f); fd.append("use_llm", $("useLlm").checked ? "true" : "false");
   fd.append("types", [...selected].join(","));
+  try {
+    const r = await fetch(API + "/analyze-file", { method: "POST", body: fd });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `Sunucu ${r.status} hatası döndürdü.`);
+    review = await r.json();
+    picked = new Set(review.bulgular.map((b) => b.key));  // güvenli varsayılan: hepsi seçili
+    renderReview();
+    $("review").hidden = false;
+    $("review").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) { fileErr(e); }
+  finally {
+    $("fileProg").hidden = true;
+    $("dropTitle").textContent = "Dosyayı buraya bırakın";
+    $("file").value = "";
+  }
+}
+
+function renderReview() {
+  const items = review.bulgular;
+  const [n, unit] = unitOf(review.rapor);
+  $("rvTitle").textContent = review.dosya;
+  $("rvMeta").textContent = `${n ? fmt(n) + " " + unit + " · " : ""}${fmt(review.toplam)} geçiş · ${fmt(items.length)} farklı değer · ${(review.ms / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} sn`;
+  if (!items.length) {
+    $("rvList").innerHTML = `<div class="empty" style="padding:24px 20px"><b>Gizlenecek bir şey bulunamadı</b>Seçili veri türlerine göre bu dosyada kişisel veri veya ticari bilgi yok.</div>`;
+    syncReview();
+    return;
+  }
+  const byType = {};
+  items.forEach((b) => (byType[b.type] = byType[b.type] || []).push(b));
+  const openAll = items.length <= 12;
+  $("rvList").innerHTML = Object.entries(CATS).filter(([, c]) => c.types.some((t) => byType[t])).map(([k, c]) => `
+    <div class="rv-cat${k === "m6" ? " m6" : ""}">
+      <div class="rv-cat-h">${c.label}</div>
+      ${c.types.filter((t) => byType[t]).map((t) => {
+        const vals = byType[t], occ = vals.reduce((s, v) => s + v.count, 0), [sev, cls] = SEV[c.sev];
+        return `<div class="rv-type" data-type="${t}">
+          <div class="rv-row">
+            <label class="chk"><input type="checkbox" class="cb" data-rvtype="${t}"><span>${esc(TYPE[t] || t)}</span></label>
+            <span class="badge ${cls}">${sev}</span>
+            <span class="rv-n">${vals.length} değer${occ > vals.length ? ` · ${occ} geçiş` : ""}</span>
+            <button type="button" class="rv-tg" aria-expanded="${openAll}">değerleri ${openAll ? "gizle" : "göster"}<svg class="i"><use href="#i-chev"/></svg></button>
+          </div>
+          <div class="rv-vals"${openAll ? "" : " hidden"}>${vals.map((v) => `
+            <label class="chk rv-v"><input type="checkbox" class="cb" data-key="${esc(v.key)}"><span class="mono">${esc(v.value)}</span>${v.count > 1 ? `<span class="rv-x">×${v.count}</span>` : ""}</label>`).join("")}
+          </div>
+        </div>`;
+      }).join("")}
+    </div>`).join("");
+  syncReview();
+}
+
+function syncReview() {
+  const items = review.bulgular;
+  $("rvList").querySelectorAll("[data-key]").forEach((cb) => {
+    cb.checked = picked.has(cb.dataset.key);
+    cb.closest(".chk").classList.toggle("off", !cb.checked);
+  });
+  $("rvList").querySelectorAll("[data-rvtype]").forEach((cb) => {
+    const keys = items.filter((b) => b.type === cb.dataset.rvtype).map((b) => b.key);
+    const n = keys.filter((k) => picked.has(k)).length;
+    cb.checked = n === keys.length; cb.indeterminate = n > 0 && n < keys.length;
+    cb.closest(".chk").classList.toggle("off", n === 0);
+  });
+  const on = items.filter((b) => picked.has(b.key));
+  $("rvCount").innerHTML = `<b>${fmt(on.length)}</b> / ${fmt(items.length)} değer gizlenecek`;
+  $("rvApply").disabled = !items.length;
+  $("rvApply").textContent = on.length ? "Seçilenleri gizle ve indir" : "Gizlemeden indir";
+  const m6off = items.filter((b) => b.special && !picked.has(b.key));
+  $("rvWarn").hidden = !m6off.length;
+  if (m6off.length) $("rvWarn").lastChild.textContent = `${m6off.length} özel nitelikli değer (KVKK md. 6) gizlenmeyecek.`;
+}
+
+$("rvList").addEventListener("change", (e) => {
+  const cb = e.target;
+  const keys = cb.dataset.key ? [cb.dataset.key] : review.bulgular.filter((b) => b.type === cb.dataset.rvtype).map((b) => b.key);
+  keys.forEach((k) => (cb.checked ? picked.add(k) : picked.delete(k)));
+  syncReview();
+});
+$("rvList").addEventListener("click", (e) => {
+  const tg = e.target.closest(".rv-tg");
+  if (!tg) return;
+  const vals = tg.closest(".rv-type").querySelector(".rv-vals");
+  vals.hidden = !vals.hidden;
+  tg.setAttribute("aria-expanded", String(!vals.hidden));
+  tg.firstChild.textContent = vals.hidden ? "değerleri göster" : "değerleri gizle";
+});
+document.querySelectorAll("[data-rv]").forEach((b) => (b.onclick = () => {
+  const items = review ? review.bulgular : [];
+  picked = new Set(b.dataset.rv === "all" ? items.map((x) => x.key)
+    : b.dataset.rv === "high" ? items.filter((x) => catOf(x.type).sev === "high").map((x) => x.key) : []);
+  syncReview();
+}));
+$("rvCancel").onclick = () => { $("review").hidden = true; review = null; };
+$("rvApply").onclick = async () => {
+  const btn = $("rvApply"); btn.disabled = true; btn.textContent = "Gizleniyor…";
+  $("fileErr").hidden = true;
   const t0 = performance.now();
   try {
-    const r = await fetch(API + "/mask-file", { method: "POST", body: fd });
+    const r = await fetch(API + `/mask-file/${review.file_id}`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keys: [...picked], session: SESSION }),
+    });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `Sunucu ${r.status} hatası döndürdü.`);
+    await showMasked(r, t0);
+    $("review").hidden = true;
+    $("fileResult").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) { fileErr(e); }
+  finally { btn.disabled = false; syncReview(); }
+};
+
+async function showMasked(r, t0) {
+  {
     const rep = JSON.parse(r.headers.get("X-Kalkan-Report") || "{}");
     const url = URL.createObjectURL(await r.blob());
     const name = (r.headers.get("Content-Disposition") || "").match(/filename="(.+)"/)?.[1] || "gizlenmis";
@@ -756,24 +939,17 @@ async function maskFile(f) {
     $("fTable").innerHTML = entries.map(([t, n]) => {
       const c = catOf(t), [sev, cls] = SEV[c.sev];
       return `<tr><td><span class="badge ${cls}">${sev}</span></td><td>${esc(TYPE[t] || t)}<div class="muted" style="font-size:12px">${c.label}</div></td><td class="val">${fmt(n)}<span class="sm-only"> adet</span></td><td class="hide-sm muted">${hintedTypes.has(t) ? "Sütun başlığı ve hücre taraması" : isTable ? "Hücre içeriği taraması" : rep.sayfa != null ? "Metin taraması ve karartma" : "Metin taraması"}</td></tr>`;
-    }).join("") || `<tr><td colspan="4"><div class="empty" style="padding:8px 0"><b>Hassas veri bulunmadı</b>Dosya değiştirilmeden indirildi.</div></td></tr>`;
+    }).join("") || `<tr><td colspan="4"><div class="empty" style="padding:8px 0"><b>Hiçbir değer gizlenmedi</b>Dosya seçiminize göre değiştirilmeden indirildi.</div></td></tr>`;
     $("fileResult").hidden = false;
-  } catch (e) {
-    $("fileErrText").textContent = e.message === "Failed to fetch" ? "Yerel sunucuya ulaşılamadı." : e.message;
-    $("fileErr").hidden = false;
-  } finally {
-    $("fileProg").hidden = true;
-    $("dropTitle").textContent = "Dosyayı buraya bırakın";
-    $("file").value = "";
   }
 }
 const drop = $("drop");
 drop.onclick = () => $("file").click();
 drop.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } };
-$("file").onchange = (e) => e.target.files[0] && maskFile(e.target.files[0]);
+$("file").onchange = (e) => e.target.files[0] && analyzeFile(e.target.files[0]);
 ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
 ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
-drop.addEventListener("drop", (e) => e.dataTransfer.files[0] && maskFile(e.dataTransfer.files[0]));
+drop.addEventListener("drop", (e) => e.dataTransfer.files[0] && analyzeFile(e.dataTransfer.files[0]));
 
 // ---------------------------------------------------------------- veri türü filtresi
 // Tek bir bileşen; hangi görünüm açıksa onun yuvasına taşınır. Başlangıç değeri şirket politikasıdır.

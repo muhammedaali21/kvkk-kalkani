@@ -13,8 +13,10 @@ from pathlib import PurePath
 
 import pandas as pd
 
+from dataclasses import dataclass
+
 from . import llm
-from .engine import LLM_CAPABLE, PRIORITY, Engine
+from .engine import LLM_CAPABLE, PRIORITY, Engine, normalize
 from .names import tr_lower
 
 # Sütun başlığı bu kalıplara uyuyorsa hücrenin tamamı ilgili türle maskelenir.
@@ -37,13 +39,49 @@ def column_hint(header: str) -> str | None:
     return None
 
 
-def mask_dataframe(engine: Engine, df: pd.DataFrame, session: str,
-                   use_llm: bool = False, types: set[str] | None = None) -> tuple[pd.DataFrame, dict]:
-    vault = engine.vault(session)
+@dataclass
+class Job:
+    """Bir dosya işinin ayarları.
+
+    only: verilirse yalnızca bu (tür, normalize değer) çiftleri gizlenir (kullanıcının seçimi).
+    found: verilirse bulunan her (tür, değer) buraya eklenir (analiz adımı).
+    phrase_cache: Gemma'nın belge için bulduğu ifadeler; analizde bir kez hesaplanır, gizlemede tekrar kullanılır.
+    """
+    session: str
+    use_llm: bool
+    types: set[str]
+    only: set[tuple[str, str]] | None = None
+    found: list[tuple[str, str]] | None = None
+    phrase_cache: dict | None = None
+
+    def mask(self, engine: Engine, text: str, phrases: list[dict] | None = None,
+             use_llm: bool | None = None) -> dict:
+        r = engine.mask(text, session=self.session, use_llm=self.use_llm if use_llm is None else use_llm,
+                        record=False, phrases=phrases, types=self.types, only=self.only)
+        if self.found is not None:
+            self.found += [(f["type"], f["value"]) for f in r["findings"]]
+        return r
+
+    def phrases(self, text: str) -> list[dict] | None:
+        if not self.use_llm:
+            return None
+        if self.phrase_cache is not None and "ifadeler" in self.phrase_cache:
+            return self.phrase_cache["ifadeler"]
+        result = llm.collect_phrases(text)
+        if self.phrase_cache is not None:
+            self.phrase_cache["ifadeler"] = result
+        return result
+
+    def selected(self, typ: str, value: str) -> bool:
+        return self.only is None or (typ, normalize(typ, value)) in self.only
+
+
+def mask_dataframe(engine: Engine, df: pd.DataFrame, job: Job) -> tuple[pd.DataFrame, dict]:
+    vault = engine.vault(job.session)
     counts: Counter[str] = Counter()
     # Filtre dışındaki bir türün sütunu otomatik gizlenmez; hücreleri normal taramadan geçer.
-    hints = {col: h if (h := column_hint(col)) and (types is None or h in types) else None for col in df.columns}
-    cache: dict[str, str] = {}
+    hints = {col: h if (h := column_hint(col)) and h in job.types else None for col in df.columns}
+    cache: dict[str, tuple[str, list[tuple[str, str]], dict]] = {}
     out = df.copy()
     for col in df.columns:
         hint = hints[col]
@@ -54,18 +92,27 @@ def mask_dataframe(engine: Engine, df: pd.DataFrame, session: str,
                 values.append(text)
                 continue
             if hint:
+                value = text.strip()
+                if not job.selected(hint, value):
+                    values.append(text)  # kullanıcı bu değeri gizlememeyi seçti
+                    continue
                 with engine.lock:
-                    values.append(vault.tag_for(hint, text.strip()))
+                    values.append(vault.tag_for(hint, value))
                 counts[hint] += 1
+                if job.found is not None:
+                    job.found.append((hint, value))
                 continue
             if text not in cache:
-                r = engine.mask(text, session=session, use_llm=use_llm, record=False, types=types)
-                cache[text] = r["masked"]
-                counts.update(r["counts"])
-            elif cache[text] != text:
-                # Önbellekten gelen hücre de bir bulgu sayılır.
-                counts.update(re.findall(r"\[([A-Z][A-Z_]*)_\d+\]", cache[text]))
-            values.append(cache[text])
+                before = len(job.found) if job.found is not None else 0
+                r = job.mask(engine, text)
+                cache[text] = (r["masked"], job.found[before:] if job.found is not None else [], r["counts"])
+            else:
+                # Aynı hücre tekrar ediyorsa önbellekten gelir ama yine bulgu olarak sayılır.
+                if job.found is not None:
+                    job.found += cache[text][1]
+            masked, _, cell_counts = cache[text]
+            counts.update(cell_counts)
+            values.append(masked)
         out[col] = values
     report = {
         "satir": int(len(df)),
@@ -78,17 +125,20 @@ def mask_dataframe(engine: Engine, df: pd.DataFrame, session: str,
 
 
 def mask_file(engine: Engine, filename: str, data: bytes, session: str,
-              use_llm: bool = False, types: list[str] | None = None) -> tuple[bytes, str, dict]:
+              use_llm: bool = False, types: list[str] | None = None, *,
+              only: set[tuple[str, str]] | None = None, found: list | None = None,
+              phrase_cache: dict | None = None, record: bool = True) -> tuple[bytes, str, dict]:
     """Dosyayı maskeler. (içerik, medya türü, rapor) döner. types yoksa şirket politikası geçerlidir."""
     allowed = engine.allowed_types(types)
     if not allowed & LLM_CAPABLE:
         use_llm = False
+    job = Job(session, use_llm, allowed, only, found, phrase_cache)
     ext = PurePath(filename).suffix.lower()
     if ext == ".csv":
         text = _decode(data)
         sep = ";" if text.splitlines()[0].count(";") > text.splitlines()[0].count(",") else ","
         df = pd.read_csv(io.StringIO(text), dtype=str, keep_default_na=False, sep=sep)
-        masked, report = mask_dataframe(engine, df, session, use_llm, allowed)
+        masked, report = mask_dataframe(engine, df, job)
         buf = io.StringIO()
         masked.to_csv(buf, index=False, sep=sep)
         content, media = buf.getvalue().encode("utf-8-sig"), "text/csv; charset=utf-8"
@@ -99,7 +149,7 @@ def mask_file(engine: Engine, filename: str, data: bytes, session: str,
         total: Counter[str] = Counter()
         with pd.ExcelWriter(buf, engine="openpyxl") as writer:
             for name, df in sheets.items():
-                masked, rep = mask_dataframe(engine, df, session, use_llm, allowed)
+                masked, rep = mask_dataframe(engine, df, job)
                 masked.to_excel(writer, sheet_name=name, index=False)
                 report["sayfalar"][name] = rep
                 total.update(rep["bulgular"])
@@ -107,21 +157,25 @@ def mask_file(engine: Engine, filename: str, data: bytes, session: str,
         content = buf.getvalue()
         media = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     elif ext in (".txt", ".md", ""):
-        r = engine.mask(_decode(data), session=session, use_llm=use_llm, record=False, types=allowed)
-        report = {"bulgular": r["counts"], "toplam": sum(r["counts"].values())}
+        text = _decode(data)
+        # Düz metinde model doğrudan çağrılır; önbellekte ifade varsa onlar kullanılır.
+        r = job.mask(engine, text, phrases=job.phrases(text), use_llm=False)
+        report = {"bulgular": r["counts"], "toplam": sum(r["counts"].values()),
+                  "satir": text.count("\n") + 1}
         content, media = r["masked"].encode("utf-8"), "text/plain; charset=utf-8"
     elif ext == ".docx":
-        content, report = mask_docx(engine, data, session, use_llm, allowed)
+        content, report = mask_docx(engine, data, job)
         media = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     elif ext == ".pdf":
-        content, report = mask_pdf(engine, data, session, use_llm, allowed)
+        content, report = mask_pdf(engine, data, job)
         media = "application/pdf"
     elif ext == ".doc":
         raise ValueError("Eski Word biçimi (.doc) desteklenmiyor. Dosyayı Word'de .docx olarak kaydedip tekrar yükleyin.")
     else:
         raise ValueError(f"Desteklenmeyen dosya türü: {ext or '(yok)'}. CSV, XLSX, DOCX, PDF veya TXT yükleyin.")
     report["filtre_disi"] = sorted(set(PRIORITY) - allowed)
-    engine.stats.record(report["bulgular"], llm_used=use_llm, file=True)
+    if record:
+        engine.stats.record(report["bulgular"], llm_used=use_llm, file=True)
     return content, media, report
 
 
@@ -184,8 +238,7 @@ def _replace_in_nodes(nodes, start: int, end: int, tag: str) -> None:
         n.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
 
 
-def mask_docx(engine: Engine, data: bytes, session: str, use_llm: bool,
-              types: set[str] | None = None) -> tuple[bytes, dict]:
+def mask_docx(engine: Engine, data: bytes, job: Job) -> tuple[bytes, dict]:
     import docx
     from lxml import etree
 
@@ -197,14 +250,14 @@ def mask_docx(engine: Engine, data: bytes, session: str, use_llm: bool,
     roots = list(_docx_text_roots(doc))
     paragraphs = [(nodes, "".join(n.text or "" for n in nodes))
                   for _, root, _ in roots for nodes in _docx_paragraph_nodes(root)]
-    phrases = llm.collect_phrases("\n".join(t for _, t in paragraphs)) if use_llm else None
+    phrases = job.phrases("\n".join(t for _, t in paragraphs))
 
     counts: Counter[str] = Counter()
     values: set[str] = set()
     for nodes, text in paragraphs:
         if not text.strip():
             continue
-        r = engine.mask(text, session=session, use_llm=False, record=False, phrases=phrases, types=types)
+        r = job.mask(engine, text, phrases=phrases, use_llm=False)
         counts.update(r["counts"])
         for f in reversed(r["findings"]):
             _replace_in_nodes(nodes, f["start"], f["end"], f["tag"])
@@ -243,8 +296,7 @@ def mask_docx(engine: Engine, data: bytes, session: str, use_llm: bool,
 # PDF
 # ---------------------------------------------------------------------------
 
-def mask_pdf(engine: Engine, data: bytes, session: str, use_llm: bool,
-             types: set[str] | None = None) -> tuple[bytes, dict]:
+def mask_pdf(engine: Engine, data: bytes, job: Job) -> tuple[bytes, dict]:
     """Gerçek karartma: gizlenen metin PDF'ten silinir, yerine etiket yazılır.
 
     Sadece üstüne kutu çizmek yetmez; alttaki metin seçilip kopyalanabilir ve yapay zekâ onu okur.
@@ -262,13 +314,13 @@ def mask_pdf(engine: Engine, data: bytes, session: str, use_llm: bool,
     if not any(t.strip() for t in texts):
         raise ValueError("PDF'te seçilebilir metin yok; taranmış (görüntü) bir belge olabilir. "
                          "Bu sürüm yalnızca metin içeren PDF'leri karartır.")
-    phrases = llm.collect_phrases("\n".join(texts)) if use_llm else None
+    phrases = job.phrases("\n".join(texts))
 
     counts: Counter[str] = Counter()
     values: set[str] = set()
     ink, white = (0.106, 0.106, 0.102), (1, 1, 1)
     for page, text in zip(doc, texts):
-        r = engine.mask(text, session=session, use_llm=False, record=False, phrases=phrases, types=types)
+        r = job.mask(engine, text, phrases=phrases, use_llm=False)
         counts.update(r["counts"])
         seen: set[str] = set()
         for f in r["findings"]:

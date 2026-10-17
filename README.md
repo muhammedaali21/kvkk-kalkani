@@ -103,6 +103,8 @@ uvicorn kalkan.api:app --host 127.0.0.1 --port 8765
 | `GET /mapping/{session}` | tag → value (localhost only) |
 | `POST /reset/{session}` | drop a session's vault |
 | `POST /mask-file` | DOCX / PDF / XLSX / CSV / TXT → masked file in the same format; report in the `X-Kalkan-Report` header |
+| `POST /analyze-file` | Review step: scans the file without changing it and lists every value found, grouped by type (`{file_id, bulgular: [{key, type, value, count}]}`). The file is kept in memory for 30 minutes, never on disk. |
+| `POST /mask-file/{file_id}` | `{keys, session}` → masks only the values the user selected in the review step |
 | `GET /stats` | panel statistics (types and counts only) |
 | `GET/PUT /sozluk` | company trade-secret dictionary |
 | `POST /v1/chat/completions` | OpenAI-compatible proxy: mask → forward → restore (no streaming) |

@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import json
 import os
+import threading
+import time
 import uuid
 from pathlib import Path
 
@@ -17,7 +19,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 
 from . import llm
-from .engine import PRIORITY, Engine
+from .engine import PRIORITY, SPECIAL_CATEGORIES, Engine, normalize
 from .files import mask_file
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -94,12 +96,98 @@ async def mask_file_endpoint(
 ) -> Response:
     session = session or f"dosya-{uuid.uuid4().hex[:8]}"
     data = await file.read()
-    type_list = None if types is None else [t.strip() for t in types.split(",") if t.strip()]
     try:
-        content, media, report = mask_file(engine, file.filename or "", data, session, use_llm, type_list)
+        content, media, report = mask_file(engine, file.filename or "", data, session, use_llm, _types(types))
     except ValueError as e:
         raise HTTPException(400, str(e))
-    stem, _, ext = (file.filename or "dosya.txt").rpartition(".")
+    return _file_response(file.filename or "dosya.txt", content, media, report, session)
+
+
+# ---------------------------------------------------------------------------
+# İki adımlı dosya akışı: önce incele, sonra kullanıcının seçtiklerini gizle.
+# Dosya yalnızca bu süreçte, bellekte ve kısa süre tutulur; diske yazılmaz.
+# ---------------------------------------------------------------------------
+
+_FILE_TTL = 30 * 60
+_FILE_MAX = 20
+_pending: dict[str, dict] = {}
+_pending_lock = threading.Lock()
+
+
+def _prune_pending() -> None:
+    now = time.time()
+    with _pending_lock:
+        for fid in [f for f, e in _pending.items() if now - e["zaman"] > _FILE_TTL]:
+            del _pending[fid]
+        for fid in sorted(_pending, key=lambda f: _pending[f]["zaman"])[:-_FILE_MAX]:
+            del _pending[fid]
+
+
+@app.post("/analyze-file")
+async def analyze_file(
+    file: UploadFile = File(...),
+    use_llm: bool = Form(default=False),
+    types: str | None = Form(default=None),
+) -> dict:
+    """Dosyayı değiştirmeden tarar; gizlenebilecek değerleri türe göre listeler."""
+    t0 = time.perf_counter()
+    name, data = file.filename or "", await file.read()
+    found: list[tuple[str, str]] = []
+    phrase_cache: dict = {}
+    scratch = f"analiz-{uuid.uuid4().hex[:8]}"
+    try:
+        _, _, report = mask_file(engine, name, data, scratch, use_llm, _types(types),
+                                 found=found, phrase_cache=phrase_cache, record=False)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    finally:
+        engine.reset(scratch)  # analiz oturumunun eşleme tablosu tutulmaz
+
+    items: dict[str, dict] = {}
+    for typ, value in found:
+        key = f"{typ}|{normalize(typ, value)}"
+        if key not in items:
+            items[key] = {"key": key, "type": typ, "value": value, "count": 0,
+                          "special": typ in SPECIAL_CATEGORIES}
+        items[key]["count"] += 1
+
+    _prune_pending()
+    file_id = uuid.uuid4().hex
+    with _pending_lock:
+        _pending[file_id] = {"ad": name, "veri": data, "use_llm": use_llm, "ifadeler": phrase_cache,
+                             "zaman": time.time()}
+    report.pop("bulgular", None)
+    return {"file_id": file_id, "dosya": name, "rapor": report, "bulgular": list(items.values()),
+            "toplam": len(found), "ms": round((time.perf_counter() - t0) * 1000)}
+
+
+class SelectionIn(BaseModel):
+    keys: list[str]  # /analyze-file yanıtındaki "key" değerleri
+    session: str = "default"
+
+
+@app.post("/mask-file/{file_id}")
+def mask_selected(file_id: str, body: SelectionIn) -> Response:
+    """İncelenen dosyada yalnızca seçilen değerleri gizler."""
+    _prune_pending()
+    with _pending_lock:
+        entry = _pending.get(file_id)
+    if entry is None:
+        raise HTTPException(404, "Dosyanın inceleme süresi doldu. Lütfen dosyayı tekrar yükleyin.")
+    only = {(t, v) for t, _, v in (k.partition("|") for k in body.keys) if t in PRIORITY}
+    content, media, report = mask_file(engine, entry["ad"], entry["veri"], body.session, entry["use_llm"],
+                                       sorted({t for t, _ in only}), only=only,
+                                       phrase_cache=entry["ifadeler"])
+    return _file_response(entry["ad"] or "dosya.txt", content, media, report, body.session)
+
+
+def _types(types: str | None) -> list[str] | None:
+    """Virgülle ayrılmış tür listesi; verilmezse (None) şirket politikası geçerlidir."""
+    return None if types is None else [t.strip() for t in types.split(",") if t.strip()]
+
+
+def _file_response(filename: str, content: bytes, media: str, report: dict, session: str) -> Response:
+    stem, _, ext = filename.rpartition(".")
     return Response(
         content,
         media_type=media,

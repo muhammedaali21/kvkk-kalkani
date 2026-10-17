@@ -174,7 +174,8 @@ class Engine:
 
     def detect(self, text: str, use_llm: bool = True, use_names: bool = True,
                use_regex: bool = True, phrases: list[dict] | None = None,
-               types: set[str] | None = None) -> tuple[list[Finding], bool]:
+               types: set[str] | None = None,
+               only: set[tuple[str, str]] | None = None) -> tuple[list[Finding], bool]:
         """phrases verilirse model yeniden çağrılmaz; önceden toplanan ifadeler bu metinde eşlenir.
 
         types verilirse yalnızca bu türler gizlenir. Filtre çakışma çözümünden ÖNCE uygulanır; böylece
@@ -203,6 +204,9 @@ class Engine:
                 findings += llm_findings
         if types is not None:
             findings = [f for f in findings if f.type in types]
+        if only is not None:
+            # Kullanıcının dosya incelemesinde seçtiği (tür, değer) çiftleri.
+            findings = [f for f in findings if (f.type, normalize(f.type, original[f.start:f.end])) in only]
         resolved = resolve_overlaps(findings)
         for f in resolved:
             f.value = original[f.start:f.end]
@@ -223,10 +227,11 @@ class Engine:
     # -- mask / unmask -----------------------------------------------------
     def mask(self, text: str, session: str = "default", use_llm: bool = True,
              record: bool = True, phrases: list[dict] | None = None,
-             types: list[str] | set[str] | None = None) -> dict:
+             types: list[str] | set[str] | None = None,
+             only: set[tuple[str, str]] | None = None) -> dict:
         t0 = time.perf_counter()
         allowed = self.allowed_types(types)
-        findings, llm_used = self.detect(text, use_llm=use_llm, phrases=phrases, types=allowed)
+        findings, llm_used = self.detect(text, use_llm=use_llm, phrases=phrases, types=allowed, only=only)
         vault = self.vault(session)
         with self.lock:
             tags = [vault.tag_for(f.type, f.value) for f in findings]

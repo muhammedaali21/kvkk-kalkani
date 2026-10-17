@@ -94,6 +94,32 @@ def test_type_filter_and_policy():
     assert set(r["counts"]) == {"TC"}, r["counts"]
 
 
+def test_file_review_and_selection():
+    # İki adımlı akış: önce incele (dosya değişmez), sonra yalnızca seçilenleri gizle.
+    import io as _io
+    import docx
+    from kalkan.engine import normalize
+    from kalkan.files import mask_file
+
+    sample = Path(__file__).resolve().parents[2] / "ornek" / "sozlesme.docx"
+    if not sample.exists():
+        print("  (ornek/sozlesme.docx yok — python ornek/olustur.py ile üretin; test atlandı)")
+        return
+    e = _engine()
+    found, cache = [], {}
+    mask_file(e, "s.docx", sample.read_bytes(), "analiz", False, found=found, phrase_cache=cache, record=False)
+    pairs = {(t, v) for t, v in found}
+    assert ("TC", "10000000146") in pairs and ("KISI", "Ayşe Demir") in pairs, pairs
+    only = {("TC", normalize("TC", "10000000146")), ("KISI", normalize("KISI", "Ayşe Demir"))}
+    out, _, rep = mask_file(e, "s.docx", sample.read_bytes(), "secim", False, ["TC", "KISI"], only=only,
+                            phrase_cache=cache, record=False)
+    d = docx.Document(_io.BytesIO(out))
+    text = "\n".join(p.text for p in d.paragraphs) + "\n".join(c.text for t in d.tables for r in t.rows for c in r.cells)
+    assert "10000000146" not in text and "Ayşe Demir" not in text  # seçilenler gizli
+    assert "Mehmet" in text and "0532 123 45 67" in text  # seçilmeyenler açık
+    assert rep["toplam"] == 2, rep
+
+
 def test_stats_have_no_raw_data():
     e = _engine()
     e.mask(ORNEK, session="x", use_llm=False)
