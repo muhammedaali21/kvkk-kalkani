@@ -68,6 +68,15 @@ def test_roundtrip_and_consistent_tags():
     assert e.unmask("[KISI_1]", "baska") == "[KISI_1]"
 
 
+def test_nonbreaking_spaces():
+    # Word/PDF/web'den kopyalanan metinlerde boşluklar U+00A0 olabilir; IBAN yine yakalanmalı.
+    e = _engine()
+    text = "IBAN: TR18 0006 2001 1900 0006 6723 15, Ahmet Yılmaz"
+    r = e.mask(text, session="nb", use_llm=False)
+    assert "TR18" not in r["masked"] and "Ahmet" not in r["masked"], r["masked"]
+    assert e.unmask(r["masked"], "nb") == text
+
+
 def test_stats_have_no_raw_data():
     e = _engine()
     e.mask(ORNEK, session="x", use_llm=False)

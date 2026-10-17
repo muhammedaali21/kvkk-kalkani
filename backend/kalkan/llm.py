@@ -76,6 +76,36 @@ def available() -> bool:
 
 def detect_llm(text: str) -> list[Finding] | None:
     """Gemma'dan bulguları al. Ollama yoksa veya hata olursa None döner."""
+    items = _ask(text)
+    return None if items is None else _ground(text, items)
+
+
+def collect_phrases(text: str, chunk_size: int = 3500) -> list[dict] | None:
+    """Uzun belgeler için: metni parçalara bölüp Gemma'ya birkaç kez sorar, ham ifade listesini döner.
+
+    Ifadeler daha sonra her paragrafta ayrıca eşlenir (bkz. Engine.detect(phrases=...)); böylece
+    yüzlerce paragraf için yüzlerce model çağrısı yapılmaz.
+    """
+    if not text.strip() or not available():
+        return None
+    chunks, current = [], ""
+    for line in text.split("\n"):
+        if current and len(current) + len(line) > chunk_size:
+            chunks.append(current)
+            current = ""
+        current += line + "\n"
+    if current.strip():
+        chunks.append(current)
+    phrases: list[dict] = []
+    for chunk in chunks:
+        items = _ask(chunk)
+        if items is None:
+            return None
+        phrases += [i for i in items if isinstance(i, dict)]
+    return phrases
+
+
+def _ask(text: str) -> list | None:
     if not text.strip() or not available():
         return None
     try:
@@ -100,7 +130,7 @@ def detect_llm(text: str) -> list[Finding] | None:
         items = json.loads(content).get("bulgular", [])
     except Exception:
         return None
-    return _ground(text, items)
+    return items if isinstance(items, list) else []
 
 
 def _ground(text: str, items: list) -> list[Finding]:

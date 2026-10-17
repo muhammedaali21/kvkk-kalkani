@@ -30,6 +30,7 @@ PRIORITY = {
 SPECIAL_CATEGORIES = {"SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"}
 
 TAG_RE = re.compile(r"\[([A-Z][A-Z_]*_\d+)\]")
+_UNICODE_SPACES = re.compile(r"[  -   　]")
 _NUMERIC_TYPES = {"TC", "IBAN", "KART", "VKN", "TELEFON"}
 
 
@@ -147,7 +148,12 @@ class Engine:
 
     # -- tespit ------------------------------------------------------------
     def detect(self, text: str, use_llm: bool = True, use_names: bool = True,
-               use_regex: bool = True) -> tuple[list[Finding], bool]:
+               use_regex: bool = True, phrases: list[dict] | None = None) -> tuple[list[Finding], bool]:
+        """phrases verilirse model yeniden çağrılmaz; önceden toplanan ifadeler bu metinde eşlenir."""
+        original = text
+        # Word, PDF ve web sayfalarından gelen bölünemez boşluklar (U+00A0 vb.) desenleri atlatmasın.
+        # Karakter sayısı değişmez, bu yüzden konumlar orijinal metinle aynı kalır.
+        text = _UNICODE_SPACES.sub(" ", text)
         findings: list[Finding] = []
         if use_regex:
             findings += detect_regex(text)
@@ -155,12 +161,18 @@ class Engine:
         if use_names:
             findings += detect_names(text)
         llm_used = False
-        if use_llm:
+        if phrases is not None:
+            llm_used = True
+            findings += llm._ground(text, phrases)
+        elif use_llm:
             llm_findings = llm.detect_llm(text)
             if llm_findings is not None:
                 llm_used = True
                 findings += llm_findings
-        return resolve_overlaps(findings), llm_used
+        resolved = resolve_overlaps(findings)
+        for f in resolved:
+            f.value = original[f.start:f.end]
+        return resolved, llm_used
 
     # -- vault -------------------------------------------------------------
     def vault(self, session: str) -> Vault:
@@ -176,9 +188,9 @@ class Engine:
 
     # -- mask / unmask -----------------------------------------------------
     def mask(self, text: str, session: str = "default", use_llm: bool = True,
-             record: bool = True) -> dict:
+             record: bool = True, phrases: list[dict] | None = None) -> dict:
         t0 = time.perf_counter()
-        findings, llm_used = self.detect(text, use_llm=use_llm)
+        findings, llm_used = self.detect(text, use_llm=use_llm, phrases=phrases)
         vault = self.vault(session)
         with self.lock:
             tags = [vault.tag_for(f.type, f.value) for f in findings]

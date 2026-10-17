@@ -1,4 +1,5 @@
-"""Dosya maskeleme denemesi için örnek müşteri listesi üretir (ornek/musteriler.xlsx, .csv).
+"""Dosya gizleme denemesi için örnek dosyalar üretir:
+ornek/musteriler.xlsx, .csv (müşteri listesi), ornek/sozlesme.docx (Word), ornek/dilekce.pdf (PDF).
 
 Tüm veriler uydurmadır; TC/IBAN algoritmik olarak geçerli ama kimseye ait değildir.
 Çalıştırma: python ornek/olustur.py
@@ -48,3 +49,81 @@ out = Path(__file__).parent
 df.to_excel(out / "musteriler.xlsx", index=False)
 df.to_csv(out / "musteriler.csv", index=False, sep=";", encoding="utf-8-sig")
 print(df.to_string())
+
+
+# --------------------------------------------------------------------------- Word sözleşme
+def word_sozlesme(path: Path) -> None:
+    """Bilerek zor durumlar içerir: parçalı (kalın) isim, tablo, e-posta bağlantısı, üst bilgi, yazar bilgisi."""
+    import docx
+    from docx.opc.constants import RELATIONSHIP_TYPE as RT
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+
+    d = docx.Document()
+    d.core_properties.author = "Selin Aksoy"
+    d.sections[0].header.paragraphs[0].text = "Yıldız Lojistik A.Ş. · Hazırlayan: Selin Aksoy"
+
+    d.add_heading("Hizmet Sözleşmesi", level=1)
+    p = d.add_paragraph("İşbu sözleşme, bir tarafta ")
+    p.add_run("Mehmet ")
+    p.add_run("Kaya").bold = True  # isim iki ayrı biçim parçasına bölünmüş
+    p.add_run(" (T.C. 10000000146), diğer tarafta Yıldız Lojistik A.Ş. (vergi kimlik no 4840847211) arasında imzalanmıştır.")
+    d.add_paragraph("Müşterinin adresi Atatürk Mahallesi Lale Sokak No: 7 Merkez/Elazığ olup, "
+                    "ödemeler TR18 0006 2001 1900 0006 6723 15 IBAN numaralı hesaba yapılacaktır.")
+    d.add_paragraph("Müşteri, kalp ameliyatı geçirdiğini ve ağır yük taşıyamayacağını beyan etmiştir. "
+                    "Bu müşteriye özel iskonto %30 uygulanacaktır.")
+
+    p = d.add_paragraph("Yazışmalar için: ")
+    rid = p.part.relate_to("mailto:mehmet.kaya@ornekfirma.com.tr", RT.HYPERLINK, is_external=True)
+    link = OxmlElement("w:hyperlink")
+    link.set(qn("r:id"), rid)
+    run = OxmlElement("w:r")
+    t = OxmlElement("w:t")
+    t.text = "mehmet.kaya@ornekfirma.com.tr"
+    run.append(t)
+    link.append(run)
+    p._p.append(link)
+
+    d.add_heading("Taraf bilgileri", level=2)
+    table = d.add_table(rows=3, cols=2)
+    table.style = "Table Grid"
+    for row, (k, v) in zip(table.rows, [("Yetkili", "Ayşe Demir"), ("Telefon", "0532 123 45 67"),
+                                        ("Sipariş no", "12345678901")]):
+        row.cells[0].text, row.cells[1].text = k, v
+    d.add_paragraph("Sözleşme süresi 12 aydır. Teslimat 17.10.2026 tarihinde Elazığ deposundan yapılacaktır.")
+    d.save(path)
+
+
+# --------------------------------------------------------------------------- PDF dilekçe
+def pdf_dilekce(path: Path) -> None:
+    """Adres iki satıra bölünmüş; karartmanın bölünmüş değerleri de bulması gerekir."""
+    import pymupdf
+
+    font = Path("C:/Windows/Fonts/arial.ttf")
+    doc = pymupdf.open()
+    page = doc.new_page()
+    lines = [
+        "ELAZIĞ 2. ASLİYE HUKUK MAHKEMESİ'NE",
+        "",
+        "Davacı: Zeynep Çelik (T.C. 12345678950)",
+        "Vekili: Av. Kerem Aksoy, telefon 0544 987 65 43, e-posta kerem.aksoy@hukukburosu.com.tr",
+        "Davalı: Yıldız Lojistik A.Ş.",
+        "",
+        "Müvekkilin adresi Cumhuriyet Mahallesi Gazi Cad. No: 12",
+        "Elazığ olup, tazminat bedeli TR18 0006 2001 1900 0006 6723 15 IBAN'ına ödenmelidir.",
+        "Müvekkil olay nedeniyle depresyon tedavisi görmektedir.",
+        "",
+        "Dosya no 2026/1453 olup duruşma 17.10.2026 tarihindedir.",
+    ]
+    y = 72
+    for line in lines:
+        page.insert_text((60, y), line, fontsize=11, fontname="arial", fontfile=str(font))
+        y += 20
+    doc.set_metadata({"author": "Kerem Aksoy", "title": "Dilekçe"})
+    doc.subset_fonts()
+    doc.save(path, garbage=3, deflate=True)
+
+
+word_sozlesme(out / "sozlesme.docx")
+pdf_dilekce(out / "dilekce.pdf")
+print("sozlesme.docx ve dilekce.pdf oluşturuldu.")

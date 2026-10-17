@@ -412,24 +412,25 @@
           <div>
             <div class="crumb">Çalışma alanı</div>
             <h1>Dosya gizleme</h1>
-            <p>Müşteri listesi, bordro veya sipariş dökümü gibi dosyaları yapay zekâ aracına yüklemeden önce buradan geçirin. Aynı kişi dosyanın her yerinde aynı etiketi alır; tutar, adet ve tarih sütunları değişmez, analiz bozulmaz.</p>
+            <p>Müşteri listesi, sözleşme, dilekçe veya bordro gibi dosyaları yapay zekâ aracına yüklemeden önce buradan geçirin. Dosya aynı biçimde geri döner; aynı kişi her yerde aynı etiketi alır, tutar ve tarihler değişmez.</p>
           </div>
         </header>
 
         <div class="drop" id="drop" role="button" tabindex="0" aria-describedby="dropHint">
           <span class="ico"><svg class="i"><use href="#i-up"/></svg></span>
-          <div><b id="dropTitle">Dosyayı buraya bırakın</b><span id="dropHint">CSV, XLSX veya TXT. Dosya bu bilgisayarda işlenir, hiçbir yere yüklenmez.</span></div>
+          <div><b id="dropTitle">Dosyayı buraya bırakın</b><span id="dropHint">Word (.docx), PDF, Excel (.xlsx), CSV veya TXT. Dosya bu bilgisayarda işlenir, hiçbir yere yüklenmez.</span></div>
           <span class="btn sec">Dosya seç</span>
-          <input type="file" id="file" accept=".csv,.xlsx,.txt" hidden>
+          <input type="file" id="file" accept=".docx,.pdf,.xlsx,.csv,.txt" hidden>
         </div>
         <div class="progress" id="fileProg" hidden><i></i></div>
         <div class="note danger" id="fileErr" hidden style="margin-top:16px"><svg class="i"><use href="#i-alert"/></svg><div><b>Dosya işlenemedi</b><span id="fileErrText"></span></div></div>
+        <div class="note danger" id="fileLeak" hidden style="margin-top:16px"><svg class="i"><use href="#i-alert"/></svg><div><b>Dosyayı yüklemeden önce kontrol edin</b><span id="fileLeakText"></span></div></div>
 
         <div id="fileResult" hidden style="margin-top:24px" aria-live="polite">
           <div class="panel">
             <div class="facts">
               <div><strong id="fTotal">0</strong><small>değer gizlendi</small></div>
-              <div><strong id="fRows">0</strong><small>satır işlendi</small></div>
+              <div><strong id="fRows">0</strong><small id="fRowsLbl">satır işlendi</small></div>
               <div><strong id="fTime">0</strong><small>işlem süresi</small></div>
             </div>
             <div class="fileinfo">
@@ -450,7 +451,7 @@
         </div>
 
         <section class="sec">
-          <div class="note info"><svg class="i"><use href="#i-info"/></svg><div><b>Sütun başlıkları da okunur</b>"Ad Soyad", "TC Kimlik", "Telefon", "E-posta", "IBAN" ve "Adres" gibi başlıkların altındaki hücreler içerikleri ne olursa olsun gizlenir. Diğer hücreler mesaj taramasındaki katmanlardan geçer.</div></div>
+          <div class="note info"><svg class="i"><use href="#i-info"/></svg><div><b>Dosya türüne göre</b><b style="font-weight:500;margin-top:8px">Word</b>Paragraflar, tablolar, üst ve alt bilgiler, dipnotlar ve yorumlar taranır; biçimlendirme korunur. E-posta bağlantılarının adresleri ve belgenin yazar bilgisi de temizlenir.<b style="font-weight:500;margin-top:8px">PDF</b>Gizlenen metin dosyadan silinir ve yerine etiketli siyah şerit konur; yalnızca üstü kapatılmaz, seçilip kopyalanamaz. Taranmış (görüntü) PDF'ler bu sürümde desteklenmez.<b style="font-weight:500;margin-top:8px">Excel ve CSV</b>"Ad Soyad", "TC Kimlik", "Telefon", "E-posta", "IBAN" ve "Adres" gibi başlıkların altındaki hücreler içerikleri ne olursa olsun gizlenir; diğer hücreler mesaj taramasındaki katmanlardan geçer.</div></div>
         </section>
       </div>
 
@@ -677,7 +678,7 @@ function fakeReply() {
 
 // ---------------------------------------------------------------- dosya
 async function maskFile(f) {
-  $("fileErr").hidden = true; $("fileResult").hidden = true; $("fileProg").hidden = false;
+  $("fileErr").hidden = true; $("fileLeak").hidden = true; $("fileResult").hidden = true; $("fileProg").hidden = false;
   $("dropTitle").textContent = `${f.name} işleniyor…`;
   const fd = new FormData();
   fd.append("file", f); fd.append("session", SESSION); fd.append("use_llm", $("useLlm").checked ? "true" : "false");
@@ -695,14 +696,21 @@ async function maskFile(f) {
     const hinted = Object.assign({}, ...sheets.map((s) => s.sutun_ipuclari || {}));
     const hintedTypes = new Set(Object.values(hinted));
     $("fTotal").textContent = fmt(rep.toplam || 0);
-    $("fRows").textContent = rows ? fmt(rows) : "—";
+    const isTable = rep.sayfa == null && rep.paragraf == null;
+    // Birim dosya türüne göre: PDF sayfa, Word paragraf, tablo satır.
+    const [unitN, unitLbl] = rep.sayfa != null ? [rep.sayfa, "sayfa işlendi"]
+      : rep.paragraf != null ? [rep.paragraf, "paragraf işlendi"] : [rows, "satır işlendi"];
+    $("fRows").textContent = unitN ? fmt(unitN) : "—";
+    $("fRowsLbl").textContent = unitLbl;
+    $("fileLeak").hidden = !rep.kalan;
+    if (rep.kalan) $("fileLeakText").textContent = `Gizlenen değerlerden ${rep.kalan} tanesi işlenmiş dosyada hâlâ okunabiliyor (ör. özel yazı tipi veya bölünmüş metin). Dosyayı açıp kontrol etmeden yapay zekâ aracına yüklemeyin.`;
     $("fTime").textContent = ((performance.now() - t0) / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 1 }) + " sn";
     $("fName").innerHTML = `<b style="color:var(--text);font-weight:500">${esc(name)}</b>`;
     $("fHints").innerHTML = Object.keys(hinted).length ? `Başlıktan tanınan sütunlar: <span class="chips">${Object.keys(hinted).map((h) => `<span class="chip">${esc(h)}</span>`).join("")}</span>` : "";
     const entries = Object.entries(rep.bulgular || {}).sort((x, y) => catOf(x[0]).rank - catOf(y[0]).rank || y[1] - x[1]);
     $("fTable").innerHTML = entries.map(([t, n]) => {
       const c = catOf(t), [sev, cls] = SEV[c.sev];
-      return `<tr><td><span class="badge ${cls}">${sev}</span></td><td>${esc(TYPE[t] || t)}<div class="muted" style="font-size:12px">${c.label}</div></td><td class="val">${fmt(n)}<span class="sm-only"> adet</span></td><td class="hide-sm muted">${hintedTypes.has(t) ? "Sütun başlığı ve hücre taraması" : "Hücre içeriği taraması"}</td></tr>`;
+      return `<tr><td><span class="badge ${cls}">${sev}</span></td><td>${esc(TYPE[t] || t)}<div class="muted" style="font-size:12px">${c.label}</div></td><td class="val">${fmt(n)}<span class="sm-only"> adet</span></td><td class="hide-sm muted">${hintedTypes.has(t) ? "Sütun başlığı ve hücre taraması" : isTable ? "Hücre içeriği taraması" : rep.sayfa != null ? "Metin taraması ve karartma" : "Metin taraması"}</td></tr>`;
     }).join("") || `<tr><td colspan="4"><div class="empty" style="padding:8px 0"><b>Hassas veri bulunmadı</b>Dosya değiştirilmeden indirildi.</div></td></tr>`;
     $("fileResult").hidden = false;
   } catch (e) {

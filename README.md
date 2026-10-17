@@ -101,7 +101,7 @@ uvicorn kalkan.api:app --host 127.0.0.1 --port 8765
 | `POST /unmask` | `{text, session}` → `{text}` |
 | `GET /mapping/{session}` | tag → value (localhost only) |
 | `POST /reset/{session}` | drop a session's vault |
-| `POST /mask-file` | CSV / XLSX / TXT → masked file; report in the `X-Kalkan-Report` header |
+| `POST /mask-file` | DOCX / PDF / XLSX / CSV / TXT → masked file in the same format; report in the `X-Kalkan-Report` header |
 | `GET /stats` | panel statistics (types and counts only) |
 | `GET/PUT /sozluk` | company trade-secret dictionary |
 | `POST /v1/chat/completions` | OpenAI-compatible proxy: mask → forward → restore (no streaming) |
@@ -125,10 +125,21 @@ python tests/extension/e2e_extension.py
 backend/kalkan/   detectors.py  names.py  llm.py  engine.py  files.py  api.py
 backend/tests/    acceptance tests (synthetic data only)
 extension/        Chrome MV3 extension
-demo/             index.html (demo), panel.html (admin panel)
+demo/             landing.html (/), index.html (/uygulama), panel.html (/panel)
 benchmark/        generate.py, evaluate.py, results.md
+ornek/            synthetic sample files (xlsx, csv, docx, pdf) for trying file masking
 ```
+
+## File masking
+
+| Format | What happens |
+|---|---|
+| Word (.docx) | Every text node is scanned: body, tables, headers/footers, footnotes, comments, hyperlinks and tracked changes. Formatting is preserved. `mailto:` link targets and the document's author fields are cleared too. |
+| PDF | **True redaction**: the matched text is removed from the file and replaced by a labelled black bar — not just covered, so it cannot be selected or copied. Scanned (image-only) PDFs are not supported yet. |
+| Excel / CSV | Columns whose header names a personal field (name, TC, phone, e-mail, IBAN, address) are masked entirely; other cells go through the same layers as messages. |
+
+After masking, the output file is re-opened and searched for every value that was hidden; the count of anything still readable is returned as `kalan` and shown as a warning in the UI.
 
 ## License
 
-MIT
+MIT. Note on dependencies: PDF redaction uses [PyMuPDF](https://pymupdf.readthedocs.io/), which is licensed under AGPL-3.0 (commercial licenses are available from Artifex). That is fine for this open-source project; a closed-source commercial distribution would need a PyMuPDF commercial license or a different PDF backend.
