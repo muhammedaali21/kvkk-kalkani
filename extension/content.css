@@ -3,14 +3,26 @@
   right: 20px;
   bottom: 20px;
   z-index: 2147483647;
-  max-width: 420px;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font: 500 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
-  color: #fff;
-  background: #1f2933;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  max-width: 400px;
+  padding: 12px 16px 12px 14px;
+  border: 1px solid #e3e8ef;
+  border-left: 3px solid #24748a;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  font: 400 13.5px/1.5 Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  box-shadow: 0 4px 16px rgba(23, 43, 77, 0.12);
+}
+.kvkk-kalkan-toast::before {
+  content: "Kalkan";
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 2px;
 }
 .kvkk-kalkan-toast[hidden] { display: none; }
-.kvkk-kalkan-toast[data-kind="ok"] { background: #0f6b5c; }
-.kvkk-kalkan-toast[data-kind="error"] { background: #c62828; }
+.kvkk-kalkan-toast[data-kind="ok"] { border-left-color: #25836a; }
+.kvkk-kalkan-toast[data-kind="error"] { border-left-color: #be4b49; background: #fbeceb; color: #8f3230; border-color: #f1d3d2; }

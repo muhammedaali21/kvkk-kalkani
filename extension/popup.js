@@ -9,13 +9,14 @@ $("useLlm").onchange = (e) => chrome.storage.local.set({ useLlm: e.target.checke
 
 chrome.runtime.sendMessage({ type: "health" }, (r) => {
   if (r && r.ok) {
+    $("dServer").className = "dot ok";
     $("server").textContent = "çalışıyor";
-    $("server").className = "ok";
-    $("model").textContent = r.llm ? r.model : "Gemma kapalı";
-    $("model").className = r.llm ? "ok" : "bad";
+    $("dModel").className = "dot " + (r.llm ? "ok" : "off");
+    $("model").textContent = r.llm ? r.model : "kapalı";
   } else {
+    $("dServer").className = "dot off";
     $("server").textContent = "kapalı";
-    $("server").className = "bad";
     $("model").textContent = "—";
+    $("warn").hidden = false;
   }
 });

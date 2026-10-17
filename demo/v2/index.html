@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkan — Mesaj tarama</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #f3f1ec; --surface: #fbfaf7; --ink: #1c1b19; --ink-2: #4a4843; --muted: #7a766d;
+    --rule: #dcd7cc; --rule-2: #e8e4db; --bar: #1c1b19; --bar-ink: #f3f1ec;
+    --link: #2a47b8; --red: #b3261e; --red-soft: #f6e3e0; --restored: #e6ecfb;
+    --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #151513; --surface: #1c1c1a; --ink: #ebe8e1; --ink-2: #c3bfb5; --muted: #8e897f;
+      --rule: #34322e; --rule-2: #2a2926; --bar: #ebe8e1; --bar-ink: #151513;
+      --link: #8ea4f5; --red: #f08a80; --red-soft: #3a1d1a; --restored: #23304f;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button, select, textarea, input { font: inherit; color: inherit; }
+
+  /* Üst çubuk */
+  .top { display: flex; align-items: center; gap: 28px; padding: 0 32px; height: 56px; border-bottom: 1px solid var(--rule); background: var(--surface); }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; color: var(--ink); }
+  .brand svg { display: block; }
+  .nav { display: flex; gap: 2px; height: 100%; }
+  .nav a, .nav button { display: flex; align-items: center; padding: 0 12px; height: 100%; color: var(--muted); border: 0; background: none; cursor: pointer; border-bottom: 2px solid transparent; font-size: 14px; }
+  .nav a:hover, .nav button:hover { color: var(--ink); text-decoration: none; }
+  .nav .on { color: var(--ink); border-bottom-color: var(--ink); }
+  .status { margin-left: auto; font: 12px/1 var(--mono); color: var(--muted); display: flex; gap: 14px; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); margin-right: 6px; vertical-align: 1px; }
+  .dot.ok { background: #2f8f4e; }
+  .dot.off { background: var(--red); }
+
+  main { max-width: 1320px; margin: 0 auto; padding: 28px 32px 64px; }
+  .view[hidden] { display: none; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 4px; }
+  .lede { color: var(--ink-2); margin: 0 0 24px; max-width: 64ch; }
+
+  /* İki bölmeli düzen */
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid var(--rule); background: var(--surface); }
+  .pane { min-width: 0; display: flex; flex-direction: column; }
+  .pane + .pane { border-left: 1px solid var(--rule); }
+  .pane-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--rule-2); min-height: 46px; }
+  .pane-head .label { font-weight: 500; font-size: 14px; }
+  .pane-head .aside { margin-left: auto; display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--muted); }
+  textarea.editor { flex: 1; min-height: 340px; width: 100%; border: 0; padding: 16px; background: transparent; resize: vertical; font: 14px/1.7 var(--mono); outline: none; }
+  .pane-foot { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-top: 1px solid var(--rule-2); flex-wrap: wrap; }
+
+  .btn { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 7px 16px; cursor: pointer; font-weight: 500; font-size: 14px; border-radius: 3px; }
+  .btn:hover { opacity: .88; }
+  .btn:disabled { opacity: .5; cursor: progress; }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+  .btn.ghost:hover { border-color: var(--ink); opacity: 1; }
+  .linkbtn { border: 0; background: none; color: var(--link); cursor: pointer; padding: 0; font-size: 13px; }
+  .linkbtn:hover { text-decoration: underline; }
+  select { border: 1px solid var(--rule); background: var(--surface); padding: 4px 8px; border-radius: 3px; font-size: 13px; }
+
+  .switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--ink-2); user-select: none; }
+  .switch input { appearance: none; width: 30px; height: 17px; border-radius: 9px; background: var(--rule); position: relative; cursor: pointer; margin: 0; transition: background .15s; }
+  .switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: var(--surface); transition: transform .15s; }
+  .switch input:checked { background: var(--ink); }
+  .switch input:checked::after { transform: translateX(13px); }
+
+  /* Sekmeler (sağ bölme) */
+  .tabs { display: flex; gap: 18px; }
+  .tabs button { border: 0; background: none; padding: 4px 0; cursor: pointer; color: var(--muted); font-size: 14px; border-bottom: 2px solid transparent; }
+  .tabs button.on { color: var(--ink); border-bottom-color: var(--ink); }
+  .doc { flex: 1; min-height: 340px; padding: 16px; font: 14px/1.9 var(--mono); white-space: pre-wrap; word-break: break-word; overflow: auto; }
+  .doc .empty { font-family: var(--sans); color: var(--muted); line-height: 1.55; }
+
+  /* Karartma şeridi */
+  .rd { background: var(--bar); color: var(--bar-ink); padding: 1px 5px; border-radius: 2px; font-size: 11.5px; letter-spacing: .02em; cursor: help; white-space: nowrap; }
+  .rd.m6 { background: var(--red); color: #fff; }
+  .reveal .rd { background: transparent; color: var(--ink); font-size: inherit; letter-spacing: 0; padding: 0; border-bottom: 2px solid var(--ink); border-radius: 0; white-space: normal; }
+  .reveal .rd.m6 { color: var(--red); border-bottom-color: var(--red); }
+  .tagtxt { color: var(--ink); background: var(--rule-2); padding: 0 3px; border-radius: 2px; }
+  .tagtxt.m6 { color: var(--red); background: var(--red-soft); }
+  .back { background: var(--restored); border-radius: 2px; padding: 0 2px; }
+
+  /* Özet ve bulgular */
+  .summary { display: flex; gap: 32px; flex-wrap: wrap; align-items: baseline; margin: 28px 0 10px; }
+  .summary .n { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .summary .k { color: var(--muted); font-size: 13px; }
+  .alert { border-left: 3px solid var(--red); background: var(--red-soft); color: var(--red); padding: 8px 12px; font-size: 14px; margin: 0 0 14px; }
+  .alert[hidden] { display: none; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12.5px; padding: 8px 12px; border-bottom: 1px solid var(--rule); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
+  td.mono, .mono { font-family: var(--mono); font-size: 13px; }
+  td.val { font-family: var(--mono); font-size: 13px; word-break: break-all; }
+  .layer { font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+  .layer i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 1px; vertical-align: 0; }
+  .ledger { border: 1px solid var(--rule); background: var(--surface); }
+
+  section.block { margin-top: 40px; }
+  section.block h2 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+  section.block p.sub { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
+
+  /* Dosya */
+  .drop { display: block; border: 1.5px dashed var(--rule); background: var(--surface); padding: 44px 24px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+  .drop:hover, .drop.over { border-color: var(--ink); }
+  .drop strong { display: block; font-weight: 500; margin-bottom: 4px; }
+  .drop span { color: var(--muted); font-size: 14px; }
+  .err { color: var(--red); font-size: 14px; margin-top: 10px; }
+
+  footer { max-width: 1320px; margin: 0 auto; padding: 0 32px 32px; color: var(--muted); font-size: 12.5px; display: flex; gap: 18px; flex-wrap: wrap; }
+
+  @media (max-width: 900px) {
+    .top { padding: 0 16px; gap: 14px; }
+    .status { display: none; }
+    main { padding: 20px 16px 48px; }
+    footer { padding: 0 16px 24px; }
+    .split { grid-template-columns: 1fr; }
+    .pane + .pane { border-left: 0; border-top: 1px solid var(--rule); }
+    .hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="/">
+    <svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><path d="M10 1 L18.5 4.2 V10.6 C18.5 15.6 14.9 19.4 10 21 C5.1 19.4 1.5 15.6 1.5 10.6 V4.2 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="5.2" y="8.2" width="9.6" height="2.4" fill="currentColor"/><rect x="5.2" y="12.2" width="6" height="2.4" fill="currentColor"/></svg>
+    kalkan
+  </a>
+  <nav class="nav">
+    <button data-view="mesaj" class="on">Mesaj</button>
+    <button data-view="dosya">Dosya</button>
+    <a href="/panel">Panel</a>
+  </nav>
+  <div class="status">
+    <span id="stServer"><span class="dot"></span>sunucu</span>
+    <span id="stModel"><span class="dot"></span>model</span>
+  </div>
+</header>
+
+<main>
+  <!-- MESAJ -->
+  <div class="view" id="v-mesaj">
+    <h1>Mesaj tarama</h1>
+    <p class="lede">Yapay zekâ aracına göndermeden önce metni burada tarayın. Kişisel veriler ve ticari sırlar bu bilgisayarda gizlenir; cevaptaki etiketler yine burada gerçek değerlere döner.</p>
+
+    <div class="split">
+      <div class="pane">
+        <div class="pane-head">
+          <span class="label">Gönderilecek metin</span>
+          <div class="aside">
+            <select id="sample" aria-label="Örnek metin">
+              <option value="">Örnek yükle…</option>
+              <option value="iade">Müşteri iadesi</option>
+              <option value="ik">Performans notu (İK)</option>
+              <option value="hukuk">Dava özeti (hukuk)</option>
+            </select>
+          </div>
+        </div>
+        <textarea class="editor" id="input" spellcheck="false" placeholder="Metni yapıştırın…"></textarea>
+        <div class="pane-foot">
+          <button class="btn" id="scanBtn">Tara ve gizle</button>
+          <label class="switch" title="Bağlamsal tarama: sağlık, din, sendika, ceza, ticari sır ve listede olmayan isimler"><input type="checkbox" id="useLlm" checked> Bağlamsal tarama</label>
+          <span class="mono" id="scanMeta" style="margin-left:auto;color:var(--muted);font-size:12px"></span>
+        </div>
+      </div>
+
+      <div class="pane">
+        <div class="pane-head">
+          <div class="tabs" role="tablist">
+            <button class="on" data-tab="preview">Önizleme</button>
+            <button data-tab="outgoing">Giden metin</button>
+          </div>
+          <div class="aside">
+            <label class="switch" id="revealWrap" title="Gizlenen değerleri sadece bu ekranda göster"><input type="checkbox" id="reveal"> Değerleri göster</label>
+            <button class="linkbtn" id="copyBtn" hidden>Kopyala</button>
+          </div>
+        </div>
+        <div class="doc" id="preview"><span class="empty">Taranan metin burada görünecek. Siyah şeritler, yapay zekâ aracına gitmeyecek kısımlardır.</span></div>
+        <div class="doc" id="outgoing" hidden></div>
+      </div>
+    </div>
+
+    <div id="results" hidden>
+      <div class="summary">
+        <div><div class="n" id="sTotal">0</div><div class="k">değer gizlendi</div></div>
+        <div><div class="n" id="sTypes">0</div><div class="k">farklı veri türü</div></div>
+        <div><div class="n" id="sM6">0</div><div class="k">özel nitelikli (md. 6)</div></div>
+        <div><div class="n" id="sMs">0</div><div class="k">ms, bu bilgisayarda</div></div>
+      </div>
+      <p class="alert" id="m6Alert" hidden></p>
+      <div class="ledger">
+        <table>
+          <thead><tr><th>Etiket</th><th>Tür</th><th>Gerçek değer</th><th class="hide-sm">Yakalayan katman</th></tr></thead>
+          <tbody id="ledger"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <section class="block">
+      <h2>Cevabı geri çevir</h2>
+      <p class="sub">Yapay zekânın cevabını yapıştırın; içindeki etiketler gerçek değerlerle değiştirilir. <button class="linkbtn" id="fakeBtn">Örnek cevap ekle</button></p>
+      <div class="split">
+        <div class="pane">
+          <div class="pane-head"><span class="label">Gelen cevap</span></div>
+          <textarea class="editor" id="reply" spellcheck="false" style="min-height:180px" placeholder="Sayın [KISI_1], …"></textarea>
+          <div class="pane-foot"><button class="btn" id="unmaskBtn">Geri çevir</button><button class="btn ghost" id="resetBtn">Oturumu temizle</button></div>
+        </div>
+        <div class="pane">
+          <div class="pane-head"><span class="label">Okunacak hâli</span><div class="aside"><button class="linkbtn" id="copyBackBtn" hidden>Kopyala</button></div></div>
+          <div class="doc" id="restored" style="min-height:180px"><span class="empty">Geri çevrilen değerler mavi zeminle gösterilir.</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- DOSYA -->
+  <div class="view" id="v-dosya" hidden>
+    <h1>Dosya gizleme</h1>
+    <p class="lede">Müşteri listesi, bordro veya sipariş dökümü gibi Excel/CSV dosyalarını yapay zekâ aracına yüklemeden önce buradan geçirin. Aynı kişi dosyanın her yerinde aynı etiketi alır; tutar, adet, tarih gibi sütunlar olduğu gibi kalır, analiz bozulmaz.</p>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept=".csv,.xlsx,.txt" hidden>
+      <strong id="dropTitle">Dosyayı buraya bırakın veya seçin</strong>
+      <span>CSV, XLSX veya TXT · dosya bu bilgisayardan çıkmaz</span>
+    </label>
+    <div class="err" id="fileErr" hidden></div>
+    <div id="fileResult" hidden>
+      <div class="summary">
+        <div><div class="n" id="fTotal">0</div><div class="k">değer gizlendi</div></div>
+        <div><div class="n" id="fRows">0</div><div class="k">satır</div></div>
+        <div><div class="n" id="fMs">0</div><div class="k">saniye</div></div>
+      </div>
+      <p class="sub" id="fNote" style="color:var(--muted);font-size:14px;margin:0 0 14px"></p>
+      <div class="ledger"><table><thead><tr><th>Tür</th><th>Adet</th><th>Nasıl</th></tr></thead><tbody id="fTable"></tbody></table></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>Kalkan · yerel sunucu 127.0.0.1:8765</span>
+  <span>Gerçek değerler yalnızca bu bilgisayarın belleğinde tutulur.</span></footer>
+
+<script>
+const API = location.origin.startsWith("http") ? location.origin : "http://127.0.0.1:8765";
+const SESSION = "demo-" + Math.random().toString(36).slice(2, 10);
+const M6 = new Set(["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"]);
+const TYPE = {
+  TC: "T.C. kimlik no", IBAN: "IBAN", KART: "Kart numarası", VKN: "Vergi kimlik no", EPOSTA: "E-posta",
+  TELEFON: "Telefon", PLAKA: "Araç plakası", ADRES: "Adres", KISI: "Kişi adı", KURUM_KISI: "Dolaylı kimlik",
+  SAGLIK: "Sağlık verisi", DIN_INANC: "Din / inanç", SIYASI: "Siyasi görüş", SENDIKA: "Sendika üyeliği",
+  CEZA: "Ceza / sabıka", BIYOMETRIK: "Biyometrik veri", TICARI_SIR: "Ticari sır", SOZLUK: "Şirket sözlüğü",
+};
+const LAYER = {
+  regex: ["Desen + sağlama", "var(--ink)"],
+  isim: ["İsim listesi", "#7a766d"],
+  sozluk: ["Şirket sözlüğü", "#b07a12"],
+  llm: ["Bağlamsal (Gemma)", "#2a47b8"],
+};
+// Tüm örnekler uydurmadır; TC/IBAN/VKN algoritmik olarak geçerli ama kimseye ait değildir.
+const SAMPLES = {
+  iade: `Müşterimiz Ahmet Yılmaz (TC: 12345678950) iade istiyor. Telefon 0532 123 45 67,
+e-posta ahmet.yilmaz@gmail.com. İade TR18 0006 2001 1900 0006 6723 15 IBAN'ına.
+Adresi Cumhuriyet Mahallesi Gazi Cad. No: 12 Elazığ. Ayşe Hanım aradı.
+Sipariş no 12345678901. Kendisi şeker hastası; kâr marjımız %18.
+
+Bu müşteriye nazik ama kısa bir iade onay e-postası yazar mısın?`,
+  ik: `Performans değerlendirmesi taslağı:
+Çalışan: Elif Demir, muhasebe. Brüt maaşı 64.500 TL, zam talebi var.
+Geçen ay iki hafta depresyon tedavisi nedeniyle raporluydu.
+Sendika üyesi olduğu için yöneticisi Kerem Aksoy çekinceli.
+İletişim: elif.demir@ornekfirma.com.tr, 0544 987 65 43.
+
+Bunu profesyonel bir performans notuna çevir.`,
+  hukuk: `Müvekkilimiz Mehmet Kaya (TC 10000000146) aleyhine açılan alacak davası hakkında.
+Karşı taraf Yıldız Lojistik A.Ş., vergi kimlik no 4840847211.
+Müvekkilin 2019'da dolandırıcılıktan sabıkası var, bunu karşı taraf bilmiyor.
+Uzlaşma için gizli teklif üst sınırımız 850.000 TL.
+
+Dilekçe için savunma taslağı hazırla.`,
+};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+let last = null;
+
+async function api(path, opts = {}) {
+  const r = await fetch(API + path, { headers: { "Content-Type": "application/json" }, ...opts });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+  return r.json();
+}
+
+function setStatus(el, ok, text) { el.innerHTML = `<span class="dot ${ok ? "ok" : "off"}"></span>${esc(text)}`; }
+async function health() {
+  try {
+    const h = await api("/health");
+    setStatus($("stServer"), true, "yerel sunucu");
+    setStatus($("stModel"), h.llm, h.llm ? h.model : "bağlamsal tarama kapalı");
+  } catch {
+    setStatus($("stServer"), false, "sunucu kapalı");
+    setStatus($("stModel"), false, "—");
+  }
+}
+
+// ---------------------------------------------------------------- görünümler
+document.querySelectorAll("[data-view]").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("[data-view]").forEach((x) => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".view").forEach((v) => v.hidden = v.id !== "v-" + b.dataset.view);
+  store.set("kalkan.view", b.dataset.view);
+});
+document.querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("[data-tab]").forEach((x) => x.classList.toggle("on", x === b));
+  const out = b.dataset.tab === "outgoing";
+  $("preview").hidden = out; $("outgoing").hidden = !out;
+  $("revealWrap").hidden = out; $("copyBtn").hidden = !out || !last;
+});
+
+// ---------------------------------------------------------------- tarama
+function renderPreview(text, findings) {
+  let html = "", pos = 0;
+  for (const f of findings) {
+    html += esc(text.slice(pos, f.start));
+    const tag = f.tag.slice(1, -1);
+    html += `<span class="rd${f.special ? " m6" : ""}" data-v="${esc(f.value)}" data-t="${tag}" title="${esc(TYPE[f.type] || f.type)}">${tag}</span>`;
+    pos = f.end;
+  }
+  html += esc(text.slice(pos));
+  $("preview").innerHTML = html;
+  applyReveal();
+}
+function applyReveal() {
+  const on = $("reveal").checked;
+  $("preview").classList.toggle("reveal", on);
+  $("preview").querySelectorAll(".rd").forEach((s) => s.textContent = on ? s.dataset.v : s.dataset.t);
+}
+const tagHtml = (s) => esc(s).replace(/\[([A-Z][A-Z_]*)_(\d+)\]/g, (m, t) => `<span class="tagtxt${M6.has(t) ? " m6" : ""}">${m}</span>`);
+
+async function scan() {
+  const text = $("input").value;
+  if (!text.trim()) return;
+  const btn = $("scanBtn"); btn.disabled = true; btn.textContent = "Taranıyor…";
+  try {
+    const r = await api("/mask", { method: "POST", body: JSON.stringify({ text, session: SESSION, use_llm: $("useLlm").checked }) });
+    last = r;
+    renderPreview(text, r.findings);
+    $("outgoing").innerHTML = tagHtml(r.masked);
+    $("copyBtn").hidden = $("outgoing").hidden;
+    $("scanMeta").textContent = r.llm_used ? "4 katman" : "3 katman · bağlamsal tarama kapalı";
+    const m6 = r.findings.filter((f) => f.special);
+    $("sTotal").textContent = r.findings.length;
+    $("sTypes").textContent = Object.keys(r.counts).length;
+    $("sM6").textContent = m6.length;
+    $("sMs").textContent = Math.round(r.ms);
+    $("m6Alert").hidden = !m6.length;
+    if (m6.length) {
+      const kinds = [...new Set(m6.map((f) => (TYPE[f.type] || f.type).toLowerCase()))].join(", ");
+      $("m6Alert").textContent = `Metinde KVKK md. 6 kapsamında özel nitelikli kişisel veri var (${kinds}). Bu veriler açık rıza olmadan üçüncü taraflara aktarılamaz.`;
+    }
+    const seen = new Set();
+    $("ledger").innerHTML = r.findings.filter((f) => !seen.has(f.tag) && seen.add(f.tag)).map((f) => {
+      const [name, color] = LAYER[f.source] || [f.source, "#999"];
+      return `<tr><td class="mono"><span class="tagtxt${f.special ? " m6" : ""}">${esc(f.tag)}</span></td><td>${esc(TYPE[f.type] || f.type)}</td><td class="val">${esc(f.value)}</td><td class="hide-sm"><span class="layer"><i style="background:${color}"></i>${name}</span></td></tr>`;
+    }).join("") || `<tr><td colspan="4" style="color:var(--muted)">Hassas veri bulunmadı.</td></tr>`;
+    $("results").hidden = false;
+  } catch (e) {
+    $("preview").innerHTML = `<span class="empty" style="color:var(--red)">Yerel sunucuya ulaşılamadı; metin hiçbir yere gönderilmedi. (${esc(e.message)})</span>`;
+  } finally { btn.disabled = false; btn.textContent = "Tara ve gizle"; }
+}
+
+// ---------------------------------------------------------------- geri çevirme
+async function unmask() {
+  const raw = $("reply").value;
+  if (!raw.trim()) return;
+  const map = await api(`/mapping/${SESSION}`);
+  $("restored").innerHTML = esc(raw).replace(/\[([A-Z][A-Z_]*)_(\d+)\]/g, (m) =>
+    m in map ? `<span class="back" title="${m}">${esc(map[m])}</span>` : m);
+  $("restored").dataset.raw = (await api("/unmask", { method: "POST", body: JSON.stringify({ text: raw, session: SESSION }) })).text;
+  $("copyBackBtn").hidden = false;
+}
+
+function fakeReply() {
+  if (!last || !last.findings.length) { $("reply").value = ""; $("reply").placeholder = "Önce yukarıda bir metni tarayın."; return; }
+  const tag = (t) => (last.findings.find((f) => f.type === t) || {}).tag;
+  const kisi = tag("KISI"), iban = tag("IBAN"), tel = tag("TELEFON"), mail = tag("EPOSTA");
+  $("reply").value = [
+    "Konu: İade talebiniz onaylandı", "",
+    `Sayın ${kisi || "müşterimiz"},`, "",
+    "İade talebiniz incelenmiş ve onaylanmıştır." + (iban ? ` Tutar 3-5 iş günü içinde ${iban} numaralı hesabınıza aktarılacaktır.` : ""),
+    tel || mail ? `Sorularınız için size ${[tel, mail].filter(Boolean).join(" veya ")} üzerinden ulaşabiliriz.` : "",
+    "", "Saygılarımızla,", "Müşteri Hizmetleri",
+  ].join("\n");
+}
+
+// ---------------------------------------------------------------- dosya
+async function maskFile(f) {
+  $("fileErr").hidden = true;
+  $("dropTitle").textContent = `${f.name} işleniyor…`;
+  const fd = new FormData();
+  fd.append("file", f); fd.append("session", SESSION); fd.append("use_llm", $("useLlm").checked ? "true" : "false");
+  const t0 = performance.now();
+  try {
+    const r = await fetch(API + "/mask-file", { method: "POST", body: fd });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+    const rep = JSON.parse(r.headers.get("X-Kalkan-Report") || "{}");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(await r.blob());
+    a.download = (r.headers.get("Content-Disposition") || "").match(/filename="(.+)"/)?.[1] || "gizlenmis";
+    a.click();
+    const sheets = rep.sayfalar ? Object.values(rep.sayfalar) : [rep];
+    const rows = sheets.reduce((n, s) => n + (s.satir || 0), 0);
+    const hinted = Object.assign({}, ...sheets.map((s) => s.sutun_ipuclari || {}));
+    const hintedTypes = new Set(Object.values(hinted));
+    $("fTotal").textContent = rep.toplam || 0;
+    $("fRows").textContent = rows || "—";
+    $("fMs").textContent = ((performance.now() - t0) / 1000).toFixed(1);
+    $("fNote").textContent = `${a.download} indirildi.` + (Object.keys(hinted).length ? ` Sütun başlığından tanınanlar: ${Object.keys(hinted).join(", ")}.` : "");
+    $("fTable").innerHTML = Object.entries(rep.bulgular || {}).sort((x, y) => y[1] - x[1]).map(([t, n]) =>
+      `<tr><td>${esc(TYPE[t] || t)}</td><td class="mono">${n}</td><td style="color:var(--muted)">${hintedTypes.has(t) ? "sütun başlığı + hücre taraması" : "hücre içeriği taraması"}</td></tr>`).join("");
+    $("fileResult").hidden = false;
+  } catch (e) {
+    $("fileErr").textContent = e.message; $("fileErr").hidden = false;
+  } finally {
+    $("dropTitle").textContent = "Dosyayı buraya bırakın veya seçin";
+    $("file").value = "";
+  }
+}
+const drop = $("drop");
+$("file").onchange = (e) => e.target.files[0] && maskFile(e.target.files[0]);
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => e.dataTransfer.files[0] && maskFile(e.dataTransfer.files[0]));
+
+// ---------------------------------------------------------------- bağlama
+$("scanBtn").onclick = scan;
+$("input").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) scan(); });
+$("reveal").onchange = applyReveal;
+$("unmaskBtn").onclick = unmask;
+$("fakeBtn").onclick = fakeReply;
+$("copyBtn").onclick = () => last && navigator.clipboard.writeText(last.masked);
+$("copyBackBtn").onclick = () => navigator.clipboard.writeText($("restored").dataset.raw || "");
+$("resetBtn").onclick = async () => {
+  await api(`/reset/${SESSION}`, { method: "POST" });
+  last = null; $("results").hidden = true; $("reply").value = "";
+  $("preview").innerHTML = `<span class="empty">Oturum temizlendi; eşleme tablosu bellekten silindi.</span>`;
+  $("outgoing").innerHTML = ""; $("restored").innerHTML = ""; $("copyBackBtn").hidden = true;
+};
+$("sample").onchange = (e) => { if (e.target.value) { $("input").value = SAMPLES[e.target.value]; e.target.value = ""; } };
+$("useLlm").checked = store.get("kalkan.llm") !== "0";
+$("useLlm").onchange = (e) => store.set("kalkan.llm", e.target.checked ? "1" : "0");
+$("input").value = SAMPLES.iade;
+if (store.get("kalkan.view") === "dosya") document.querySelector('[data-view="dosya"]').click();
+health(); setInterval(health, 15000);
+</script>
+</body>
+</html>

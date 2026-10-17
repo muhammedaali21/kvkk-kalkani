@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkan — Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #f3f1ec; --surface: #fbfaf7; --ink: #1c1b19; --ink-2: #4a4843; --muted: #7a766d;
+    --rule: #dcd7cc; --rule-2: #e8e4db; --link: #2a47b8; --red: #b3261e; --track: #e8e4db;
+    --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #151513; --surface: #1c1c1a; --ink: #ebe8e1; --ink-2: #c3bfb5; --muted: #8e897f;
+      --rule: #34322e; --rule-2: #2a2926; --link: #8ea4f5; --red: #f08a80; --track: #2a2926;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); }
+  a { color: var(--link); text-decoration: none; }
+  button, textarea { font: inherit; color: inherit; }
+
+  .top { display: flex; align-items: center; gap: 28px; padding: 0 32px; height: 56px; border-bottom: 1px solid var(--rule); background: var(--surface); }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; color: var(--ink); }
+  .nav { display: flex; gap: 2px; height: 100%; }
+  .nav a { display: flex; align-items: center; padding: 0 12px; height: 100%; color: var(--muted); border-bottom: 2px solid transparent; font-size: 14px; }
+  .nav a:hover { color: var(--ink); }
+  .nav .on { color: var(--ink); border-bottom-color: var(--ink); }
+  .updated { margin-left: auto; font: 12px/1 var(--mono); color: var(--muted); }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 32px 32px 64px; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 4px; }
+  .lede { color: var(--ink-2); margin: 0 0 28px; max-width: 64ch; }
+
+  .hero { display: grid; grid-template-columns: auto 1fr; gap: 6px 22px; align-items: end; padding: 0 0 28px; border-bottom: 1px solid var(--rule); }
+  .hero .big { font-size: 64px; line-height: .95; font-weight: 600; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
+  .hero .txt { color: var(--ink-2); max-width: 36ch; padding-bottom: 6px; }
+
+  .figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--rule); }
+  .fig { padding: 18px 20px 18px 0; }
+  .fig + .fig { padding-left: 20px; border-left: 1px solid var(--rule-2); }
+  .fig .n { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .fig .k { color: var(--muted); font-size: 13px; }
+  .fig.m6 .n { color: var(--red); }
+
+  .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 48px; margin-top: 36px; }
+  h2 { font-size: 15px; font-weight: 600; margin: 0 0 14px; }
+  .row { display: grid; grid-template-columns: 150px 1fr 56px; gap: 12px; align-items: center; font-size: 14px; padding: 5px 0; }
+  .row .track { height: 8px; background: var(--track); }
+  .row .fill { height: 100%; background: var(--ink); }
+  .row.m6 .fill { background: var(--red); }
+  .row.m6 .name { color: var(--red); }
+  .row .v { text-align: right; font: 13px var(--mono); color: var(--ink-2); }
+  .empty { color: var(--muted); font-size: 14px; }
+
+  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 150px; padding-bottom: 4px; border-bottom: 1px solid var(--rule); }
+  .day { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 6px; }
+  .day .col { width: 100%; max-width: 34px; background: var(--ink); min-height: 2px; }
+  .day .val { font: 12px var(--mono); color: var(--ink-2); }
+  .daylbl { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 6px; font-size: 12px; color: var(--muted); text-align: center; }
+
+  .dict { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1.3fr; gap: 48px; }
+  .dict p { color: var(--ink-2); margin: 0 0 10px; font-size: 14px; }
+  textarea { width: 100%; min-height: 200px; border: 1px solid var(--rule); background: var(--surface); padding: 12px; font: 14px/1.7 var(--mono); resize: vertical; outline: none; }
+  textarea:focus { border-color: var(--ink); }
+  .actions { display: flex; gap: 14px; align-items: center; margin-top: 10px; }
+  .btn { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 7px 16px; cursor: pointer; font-weight: 500; font-size: 14px; border-radius: 3px; }
+  .btn:hover { opacity: .88; }
+  .saved { font-size: 13px; color: var(--muted); }
+
+  .note { margin-top: 48px; font-size: 13px; color: var(--muted); max-width: 72ch; }
+
+  @media (max-width: 900px) {
+    .top { padding: 0 16px; gap: 14px; }
+    .updated { display: none; }
+    main { padding: 24px 16px 48px; }
+    .hero { grid-template-columns: 1fr; }
+    .hero .big { font-size: 52px; }
+    .figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .fig:nth-child(3) { padding-left: 0; border-left: 0; }
+    .cols, .dict { grid-template-columns: 1fr; gap: 32px; }
+    .row { grid-template-columns: 110px 1fr 44px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="/">
+    <svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><path d="M10 1 L18.5 4.2 V10.6 C18.5 15.6 14.9 19.4 10 21 C5.1 19.4 1.5 15.6 1.5 10.6 V4.2 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="5.2" y="8.2" width="9.6" height="2.4" fill="currentColor"/><rect x="5.2" y="12.2" width="6" height="2.4" fill="currentColor"/></svg>
+    kalkan
+  </a>
+  <nav class="nav">
+    <a href="/">Mesaj</a>
+    <a href="/" id="fileLink">Dosya</a>
+    <a href="/panel" class="on">Panel</a>
+  </nav>
+  <span class="updated" id="updated"></span>
+</header>
+
+<main>
+  <h1>Şirket geneli</h1>
+  <p class="lede">Bu sayfa kimin ne yazdığını göstermez. Sunucuda yalnızca veri türü ve sayısı tutulur; mesaj içerikleri ve gerçek değerler hiçbir dosyaya yazılmaz.</p>
+
+  <div class="hero">
+    <div class="big" id="today">—</div>
+    <div class="txt">kişisel veri ve ticari sır bugün şirketten çıkmadan durduruldu.</div>
+  </div>
+
+  <div class="figures">
+    <div class="fig"><div class="n" id="total">—</div><div class="k">toplam gizlenen değer</div></div>
+    <div class="fig"><div class="n" id="requests">—</div><div class="k">taranan mesaj ve dosya</div></div>
+    <div class="fig"><div class="n" id="rate">—</div><div class="k">hassas veri içerenlerin oranı</div></div>
+    <div class="fig m6"><div class="n" id="special">—</div><div class="k">özel nitelikli veri (md. 6)</div></div>
+  </div>
+
+  <div class="cols">
+    <section>
+      <h2>Veri türüne göre</h2>
+      <div id="types" class="empty">Yükleniyor…</div>
+    </section>
+    <section>
+      <h2>Son 7 gün</h2>
+      <div class="days" id="days"></div>
+      <div class="daylbl" id="dayLabels"></div>
+    </section>
+  </div>
+
+  <section class="dict">
+    <div>
+      <h2>Şirket sözlüğü</h2>
+      <p>Müşteri firma adları, tedarikçiler, gizli proje adları. Her satıra bir terim yazın; çalışanların mesajlarında ve dosyalarında bu terimler otomatik olarak gizlenir.</p>
+      <p style="color:var(--muted)">Büyük/küçük harf fark etmez.</p>
+    </div>
+    <div>
+      <textarea id="sozluk" spellcheck="false" placeholder="Yıldız Lojistik&#10;Proje Anka&#10;Mavi Tekstil"></textarea>
+      <div class="actions"><button class="btn" id="saveBtn">Kaydet</button><span class="saved" id="saved"></span></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const API = location.origin.startsWith("http") ? location.origin : "http://127.0.0.1:8765";
+const M6 = new Set(["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"]);
+const TYPE = {
+  TC: "T.C. kimlik no", IBAN: "IBAN", KART: "Kart numarası", VKN: "Vergi kimlik no", EPOSTA: "E-posta",
+  TELEFON: "Telefon", PLAKA: "Araç plakası", ADRES: "Adres", KISI: "Kişi adı", KURUM_KISI: "Dolaylı kimlik",
+  SAGLIK: "Sağlık", DIN_INANC: "Din / inanç", SIYASI: "Siyasi görüş", SENDIKA: "Sendika",
+  CEZA: "Ceza / sabıka", BIYOMETRIK: "Biyometrik", TICARI_SIR: "Ticari sır", SOZLUK: "Şirket sözlüğü",
+};
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => new Intl.NumberFormat("tr-TR").format(n || 0);
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+async function load() {
+  let s;
+  try { s = await (await fetch(API + "/stats")).json(); }
+  catch { $("updated").textContent = "sunucuya ulaşılamıyor"; return; }
+  $("today").textContent = fmt(s.bugun.toplam);
+  $("total").textContent = fmt(s.toplam);
+  $("requests").textContent = fmt(s.istek);
+  $("rate").textContent = s.istek ? "%" + Math.round((s.korunan_istek / s.istek) * 100) : "—";
+  $("special").textContent = fmt(s.ozel_nitelikli);
+
+  const types = Object.entries(s.turler).sort((a, b) => b[1] - a[1]);
+  const max = Math.max(1, ...types.map(([, n]) => n));
+  $("types").className = types.length ? "" : "empty";
+  $("types").innerHTML = types.length ? types.map(([t, n]) =>
+    `<div class="row${M6.has(t) ? " m6" : ""}"><span class="name">${esc(TYPE[t] || t)}</span><div class="track"><div class="fill" style="width:${(n / max) * 100}%"></div></div><span class="v">${fmt(n)}</span></div>`
+  ).join("") : "Henüz tarama yapılmadı.";
+
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    days.push([d, (s.gunluk[d.toLocaleDateString("sv-SE")] || {}).toplam || 0]);
+  }
+  const dmax = Math.max(1, ...days.map(([, n]) => n));
+  $("days").innerHTML = days.map(([, n]) =>
+    `<div class="day"><span class="val">${n ? fmt(n) : ""}</span><div class="col" style="height:${(n / dmax) * 110}px"></div></div>`).join("");
+  $("dayLabels").innerHTML = days.map(([d], i) =>
+    `<span>${i === 6 ? "bugün" : d.toLocaleDateString("tr-TR", { weekday: "short" })}</span>`).join("");
+  $("updated").textContent = "güncellendi " + new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+async function loadSozluk() {
+  try { $("sozluk").value = (await (await fetch(API + "/sozluk")).json()).terimler.join("\n"); } catch {}
+}
+
+$("saveBtn").onclick = async () => {
+  const terimler = $("sozluk").value.split("\n").map((t) => t.trim()).filter(Boolean);
+  const r = await fetch(API + "/sozluk", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ terimler }) });
+  const s = await r.json();
+  $("sozluk").value = s.terimler.join("\n");
+  $("saved").textContent = `${s.terimler.length} terim kaydedildi`;
+};
+$("fileLink").onclick = () => { try { localStorage.setItem("kalkan.view", "dosya"); } catch {} };
+document.querySelector('.nav a[href="/"]').onclick = () => { try { localStorage.setItem("kalkan.view", "mesaj"); } catch {} };
+
+load(); loadSozluk();
+setInterval(load, 5000);
+</script>
+</body>
+</html>

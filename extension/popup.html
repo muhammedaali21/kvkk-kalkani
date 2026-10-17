@@ -3,24 +3,53 @@
 <head>
 <meta charset="utf-8">
 <style>
-  body { width: 280px; margin: 0; padding: 14px 16px; font: 14px/1.5 system-ui, "Segoe UI", sans-serif; color: #14171c; }
-  h1 { font-size: 16px; margin: 0 0 10px; }
-  .row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #eceff3; }
-  .ok { color: #0f6b5c; font-weight: 600; }
-  .bad { color: #c62828; font-weight: 600; }
-  label { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; cursor: pointer; }
-  p { font-size: 12px; color: #5d6673; margin: 10px 0 0; }
-  a { color: #0f6b5c; }
+  :root { --navy: #172b4d; --teal: #24748a; --text: #1f2937; --text-2: #556377; --border: #e3e8ef; --border-2: #cdd5df; --bg: #f7f8fa; --success: #25836a; --danger: #be4b49; }
+  * { box-sizing: border-box; }
+  body { width: 300px; margin: 0; font: 13px/1.5 Inter, "Segoe UI", system-ui, sans-serif; color: var(--text); background: #fff; }
+  header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .mark { width: 26px; height: 26px; border-radius: 6px; background: var(--navy); display: grid; place-items: center; }
+  header b { display: block; font-size: 14px; font-weight: 600; color: var(--navy); line-height: 1.2; }
+  header small { display: block; font-size: 11px; color: var(--text-2); }
+  section { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .row { display: flex; align-items: center; gap: 8px; padding: 3px 0; color: var(--text-2); }
+  .row span:last-child { margin-left: auto; font: 12px ui-monospace, Consolas, monospace; color: var(--text); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-2); }
+  .dot.ok { background: var(--success); }
+  .dot.off { background: var(--danger); }
+  label { display: flex; align-items: center; gap: 10px; padding: 6px 0; cursor: pointer; }
+  label span small { display: block; color: var(--text-2); font-size: 11.5px; line-height: 1.35; }
+  input[type=checkbox] { appearance: none; margin: 0 0 0 auto; order: 2; width: 32px; height: 18px; border-radius: 9px; background: var(--border-2); position: relative; cursor: pointer; flex: none; transition: background 160ms ease; }
+  input[type=checkbox]::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(23, 43, 77, .25); transition: transform 160ms ease; }
+  input[type=checkbox]:checked { background: var(--teal); }
+  input[type=checkbox]:checked::after { transform: translateX(14px); }
+  input:focus-visible, a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .warn { margin: 8px 0 0; padding: 8px 10px; border-radius: 6px; background: #fbeceb; color: #8f3230; font-size: 12px; }
+  .warn[hidden] { display: none; }
+  footer { display: flex; gap: 14px; padding: 10px 16px 12px; font-size: 12px; background: var(--bg); }
+  footer p { margin: 0; color: var(--text-2); flex: 1; }
+  a { color: var(--teal); text-decoration: none; font-weight: 500; }
+  a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-  <h1>🛡️ KVKK Kalkanı</h1>
-  <div class="row"><span>Yerel sunucu</span><span id="server">…</span></div>
-  <div class="row"><span>Model</span><span id="model">…</span></div>
-  <label><span>Koruma</span><input type="checkbox" id="enabled"></label>
-  <label><span>Gemma katmanı</span><input type="checkbox" id="useLlm"></label>
-  <p>Mesajlarınız göndermeden önce bu bilgisayarda taranır; gerçek değerler bilgisayarınızdan çıkmaz.
-    <a href="http://127.0.0.1:8765/" target="_blank">Demo</a> · <a href="http://127.0.0.1:8765/panel" target="_blank">Panel</a></p>
+  <header>
+    <span class="mark" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="2.2" rx=".6" fill="#fff"/><rect x="2" y="7" width="7.5" height="2.2" rx=".6" fill="#7fb6c5"/><rect x="2" y="11" width="10" height="2.2" rx=".6" fill="#fff"/></svg></span>
+    <span><b>Kalkan</b><small>KVKK veri koruma</small></span>
+  </header>
+  <section>
+    <div class="row"><i class="dot" id="dServer"></i><span>Yerel sunucu</span><span id="server">…</span></div>
+    <div class="row"><i class="dot" id="dModel"></i><span>Bağlamsal model</span><span id="model">…</span></div>
+    <p class="warn" id="warn" hidden>Sunucu kapalıyken mesajlar güvenlik gereği gönderilmez.</p>
+  </section>
+  <section>
+    <label><input type="checkbox" id="enabled"><span>Koruma<small>Göndermeden önce mesajları tara</small></span></label>
+    <label><input type="checkbox" id="useLlm"><span>Bağlamsal tarama<small>Sağlık, inanç, ceza, ticari bilgi</small></span></label>
+  </section>
+  <footer>
+    <p>Gerçek değerler bu bilgisayardan çıkmaz.</p>
+    <a href="http://127.0.0.1:8765/" target="_blank">Uygulama</a>
+    <a href="http://127.0.0.1:8765/panel" target="_blank">Panel</a>
+  </footer>
   <script src="popup.js"></script>
 </body>
 </html>

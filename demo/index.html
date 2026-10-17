@@ -3,263 +3,486 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kalkan — Mesaj tarama</title>
+<title>Kalkan · Mesaj tarama</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
 <style>
+  /* ---------------------------------------------------------------- tasarım tokenları */
   :root {
-    --paper: #f3f1ec; --surface: #fbfaf7; --ink: #1c1b19; --ink-2: #4a4843; --muted: #7a766d;
-    --rule: #dcd7cc; --rule-2: #e8e4db; --bar: #1c1b19; --bar-ink: #f3f1ec;
-    --link: #2a47b8; --red: #b3261e; --red-soft: #f6e3e0; --restored: #e6ecfb;
-    --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --paper: #151513; --surface: #1c1c1a; --ink: #ebe8e1; --ink-2: #c3bfb5; --muted: #8e897f;
-      --rule: #34322e; --rule-2: #2a2926; --bar: #ebe8e1; --bar-ink: #151513;
-      --link: #8ea4f5; --red: #f08a80; --red-soft: #3a1d1a; --restored: #23304f;
-    }
+    --bg: #f7f8fa; --surface: #ffffff; --surface-2: #fbfcfd;
+    --navy: #172b4d; --navy-2: #243b53;
+    --teal: #24748a; --teal-soft: #e8f2f5;
+    --text: #1f2937; --text-2: #556377; --text-3: #616f84;
+    --border: #e3e8ef; --border-2: #cdd5df;
+    --success: #25836a; --success-soft: #e6f3ee;
+    --warning: #b9852e; --warning-text: #835c14; --warning-soft: #fbf3e3;
+    --danger: #be4b49; --danger-text: #a63c3a; --danger-soft: #fbeceb;
+    --r: 8px; --r-sm: 6px;
+    --sans: Inter, "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    --ease: 160ms ease;
+    color-scheme: light;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { margin: 0; }
-  body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); }
-  a { color: var(--link); text-decoration: none; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 var(--sans); -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "tnum"; }
+  a { color: var(--teal); text-decoration: none; }
   a:hover { text-decoration: underline; }
   button, select, textarea, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 4px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  svg.i { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
-  /* Üst çubuk */
-  .top { display: flex; align-items: center; gap: 28px; padding: 0 32px; height: 56px; border-bottom: 1px solid var(--rule); background: var(--surface); }
-  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; color: var(--ink); }
-  .brand svg { display: block; }
-  .nav { display: flex; gap: 2px; height: 100%; }
-  .nav a, .nav button { display: flex; align-items: center; padding: 0 12px; height: 100%; color: var(--muted); border: 0; background: none; cursor: pointer; border-bottom: 2px solid transparent; font-size: 14px; }
-  .nav a:hover, .nav button:hover { color: var(--ink); text-decoration: none; }
-  .nav .on { color: var(--ink); border-bottom-color: var(--ink); }
-  .status { margin-left: auto; font: 12px/1 var(--mono); color: var(--muted); display: flex; gap: 14px; }
-  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); margin-right: 6px; vertical-align: 1px; }
-  .dot.ok { background: #2f8f4e; }
-  .dot.off { background: var(--red); }
+  /* ---------------------------------------------------------------- uygulama iskeleti */
+  .app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+  .side { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+  .logo { display: flex; align-items: center; gap: 10px; padding: 20px 20px 18px; border-bottom: 1px solid var(--border); color: var(--navy); }
+  .logo:hover { text-decoration: none; }
+  .logo .mark { width: 30px; height: 30px; border-radius: 7px; background: var(--navy); display: grid; place-items: center; }
+  .logo b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+  .logo small { display: block; font-size: 11.5px; color: var(--text-2); line-height: 1.3; }
+  .menu { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .menu .grp { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); padding: 14px 10px 6px; }
+  .menu .grp:first-child { padding-top: 0; }
+  .menu a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r-sm); color: var(--text-2); font-weight: 500; transition: background var(--ease), color var(--ease); }
+  .menu a:hover { background: var(--bg); color: var(--text); text-decoration: none; }
+  .menu a[aria-current="page"] { background: var(--teal-soft); color: var(--navy); }
+  .menu a[aria-current="page"] svg { color: var(--teal); }
+  .env { margin-top: auto; padding: 16px 20px 20px; border-top: 1px solid var(--border); font-size: 12.5px; }
+  .env .t { font-weight: 500; color: var(--text); margin-bottom: 8px; }
+  .env .row { display: flex; align-items: center; gap: 8px; color: var(--text-2); padding: 2px 0; }
+  .env .row span:last-child { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--text); }
+  .env p { margin: 10px 0 0; color: var(--text-3); line-height: 1.5; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-2); flex: none; }
+  .dot.ok { background: var(--success); }
+  .dot.off { background: var(--danger); }
 
-  main { max-width: 1320px; margin: 0 auto; padding: 28px 32px 64px; }
-  .view[hidden] { display: none; }
-  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 4px; }
-  .lede { color: var(--ink-2); margin: 0 0 24px; max-width: 64ch; }
+  .mbar { display: none; }
+  .content { min-width: 0; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 40px 64px; }
 
-  /* İki bölmeli düzen */
-  .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid var(--rule); background: var(--surface); }
-  .pane { min-width: 0; display: flex; flex-direction: column; }
-  .pane + .pane { border-left: 1px solid var(--rule); }
-  .pane-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--rule-2); min-height: 46px; }
-  .pane-head .label { font-weight: 500; font-size: 14px; }
-  .pane-head .aside { margin-left: auto; display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--muted); }
-  textarea.editor { flex: 1; min-height: 340px; width: 100%; border: 0; padding: 16px; background: transparent; resize: vertical; font: 14px/1.7 var(--mono); outline: none; }
-  .pane-foot { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-top: 1px solid var(--rule-2); flex-wrap: wrap; }
+  /* ---------------------------------------------------------------- sayfa başlığı */
+  .phead { display: flex; align-items: flex-end; gap: 24px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .phead .crumb { font-size: 12.5px; color: var(--text-3); margin-bottom: 6px; }
+  .phead h1 { font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; color: var(--navy); margin: 0 0 6px; }
+  .phead p { margin: 0; color: var(--text-2); max-width: 68ch; }
+  .phead .actions { margin-left: auto; display: flex; gap: 8px; flex: none; }
 
-  .btn { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 7px 16px; cursor: pointer; font-weight: 500; font-size: 14px; border-radius: 3px; }
-  .btn:hover { opacity: .88; }
-  .btn:disabled { opacity: .5; cursor: progress; }
-  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
-  .btn.ghost:hover { border-color: var(--ink); opacity: 1; }
-  .linkbtn { border: 0; background: none; color: var(--link); cursor: pointer; padding: 0; font-size: 13px; }
-  .linkbtn:hover { text-decoration: underline; }
-  select { border: 1px solid var(--rule); background: var(--surface); padding: 4px 8px; border-radius: 3px; font-size: 13px; }
+  /* ---------------------------------------------------------------- bileşenler */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: var(--r-sm); border: 1px solid var(--navy); background: var(--navy); color: #fff; font-weight: 500; cursor: pointer; transition: background var(--ease), border-color var(--ease), color var(--ease); white-space: nowrap; }
+  .btn:hover { background: var(--navy-2); border-color: var(--navy-2); }
+  .btn:disabled { opacity: .6; cursor: progress; }
+  .btn.sec { background: var(--surface); color: var(--text); border-color: var(--border-2); }
+  .btn.sec:hover { border-color: var(--navy); color: var(--navy); }
+  .btn.sm { height: 30px; padding: 0 12px; font-size: 13px; }
+  .lnk { border: 0; background: none; padding: 0; color: var(--teal); cursor: pointer; font-weight: 500; }
+  .lnk:hover { text-decoration: underline; }
+  select { height: 30px; border: 1px solid var(--border-2); background: var(--surface); padding: 0 28px 0 10px; border-radius: var(--r-sm); font-size: 13px; color: var(--text); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2364748b' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+  kbd { font: 11px var(--mono); border: 1px solid var(--border-2); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--text-2); background: var(--surface); }
 
-  .switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--ink-2); user-select: none; }
-  .switch input { appearance: none; width: 30px; height: 17px; border-radius: 9px; background: var(--rule); position: relative; cursor: pointer; margin: 0; transition: background .15s; }
-  .switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: var(--surface); transition: transform .15s; }
-  .switch input:checked { background: var(--ink); }
-  .switch input:checked::after { transform: translateX(13px); }
+  .switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; color: var(--text); }
+  .switch input { appearance: none; margin: 0; width: 32px; height: 18px; border-radius: 9px; background: var(--border-2); position: relative; cursor: pointer; transition: background var(--ease); flex: none; }
+  .switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(23, 43, 77, .25); transition: transform var(--ease); }
+  .switch input:checked { background: var(--teal); }
+  .switch input:checked::after { transform: translateX(14px); }
+  .switch small { display: block; color: var(--text-2); font-size: 12px; line-height: 1.4; }
 
-  /* Sekmeler (sağ bölme) */
-  .tabs { display: flex; gap: 18px; }
-  .tabs button { border: 0; background: none; padding: 4px 0; cursor: pointer; color: var(--muted); font-size: 14px; border-bottom: 2px solid transparent; }
-  .tabs button.on { color: var(--ink); border-bottom-color: var(--ink); }
-  .doc { flex: 1; min-height: 340px; padding: 16px; font: 14px/1.9 var(--mono); white-space: pre-wrap; word-break: break-word; overflow: auto; }
-  .doc .empty { font-family: var(--sans); color: var(--muted); line-height: 1.55; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+  .badge { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .badge.high { background: var(--danger-soft); color: var(--danger-text); }
+  .badge.mid { background: var(--warning-soft); color: var(--warning-text); }
+  .badge.low { background: var(--bg); color: var(--text-2); }
+  .tag { font: 12.5px var(--mono); color: var(--navy); background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+  .tag.m6 { color: var(--danger-text); background: var(--danger-soft); border-color: #f1d3d2; }
 
-  /* Karartma şeridi */
-  .rd { background: var(--bar); color: var(--bar-ink); padding: 1px 5px; border-radius: 2px; font-size: 11.5px; letter-spacing: .02em; cursor: help; white-space: nowrap; }
-  .rd.m6 { background: var(--red); color: #fff; }
-  .reveal .rd { background: transparent; color: var(--ink); font-size: inherit; letter-spacing: 0; padding: 0; border-bottom: 2px solid var(--ink); border-radius: 0; white-space: normal; }
-  .reveal .rd.m6 { color: var(--red); border-bottom-color: var(--red); }
-  .tagtxt { color: var(--ink); background: var(--rule-2); padding: 0 3px; border-radius: 2px; }
-  .tagtxt.m6 { color: var(--red); background: var(--red-soft); }
-  .back { background: var(--restored); border-radius: 2px; padding: 0 2px; }
+  .note { display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--r); border: 1px solid; font-size: 13.5px; line-height: 1.55; }
+  .note svg { margin-top: 2px; }
+  .note b { display: block; font-weight: 600; margin-bottom: 2px; }
+  .note.danger { background: var(--danger-soft); border-color: #f1d3d2; color: var(--danger-text); }
+  .note.danger b { color: #8f3230; }
+  .note.info { background: var(--surface); border-color: var(--border); color: var(--text-2); }
+  .note.info b { color: var(--text); }
+  .note[hidden] { display: none; }
+  .note code { font: 12.5px var(--mono); background: rgba(255, 255, 255, .6); padding: 1px 5px; border-radius: 4px; }
 
-  /* Özet ve bulgular */
-  .summary { display: flex; gap: 32px; flex-wrap: wrap; align-items: baseline; margin: 28px 0 10px; }
-  .summary .n { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-  .summary .k { color: var(--muted); font-size: 13px; }
-  .alert { border-left: 3px solid var(--red); background: var(--red-soft); color: var(--red); padding: 8px 12px; font-size: 14px; margin: 0 0 14px; }
-  .alert[hidden] { display: none; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12.5px; padding: 8px 12px; border-bottom: 1px solid var(--rule); }
-  td { padding: 8px 12px; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
-  td.mono, .mono { font-family: var(--mono); font-size: 13px; }
-  td.val { font-family: var(--mono); font-size: 13px; word-break: break-all; }
-  .layer { font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
-  .layer i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 1px; vertical-align: 0; }
-  .ledger { border: 1px solid var(--rule); background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 500; color: var(--text-2); padding: 10px 16px; background: var(--surface-2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr { transition: background var(--ease); }
+  tbody tr:hover { background: var(--surface-2); }
+  td.val { font: 13px var(--mono); color: var(--text); word-break: break-word; }
+  td.muted, .muted { color: var(--text-2); }
+  .layer { display: inline-flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 13px; white-space: nowrap; }
+  .layer i { width: 8px; height: 8px; border-radius: 2px; }
 
-  section.block { margin-top: 40px; }
-  section.block h2 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
-  section.block p.sub { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
+  /* ---------------------------------------------------------------- süreç göstergesi */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0 0 20px; padding: 0; list-style: none; counter-reset: s; }
+  .steps li { display: flex; gap: 12px; align-items: flex-start; padding: 0 16px 0 0; position: relative; color: var(--text-3); }
+  .steps li::before { counter-increment: s; content: counter(s); width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border-2); background: var(--surface); display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none; transition: all var(--ease); }
+  .steps li::after { content: ""; position: absolute; left: 36px; right: 16px; top: 12px; height: 1px; background: var(--border); z-index: -1; }
+  .steps li:last-child::after { display: none; }
+  .steps li span { display: block; padding-right: 8px; background: var(--bg); }
+  .steps li b { display: block; font-size: 13px; font-weight: 500; color: inherit; }
+  .steps li small { display: block; font-size: 12px; color: var(--text-3); }
+  .steps li.now { color: var(--navy); }
+  .steps li.now::before { border-color: var(--navy); color: var(--navy); box-shadow: 0 0 0 3px var(--teal-soft); }
+  .steps li.done { color: var(--text); }
+  .steps li.done::before { content: "✓"; background: var(--teal); border-color: var(--teal); color: #fff; }
 
-  /* Dosya */
-  .drop { display: block; border: 1.5px dashed var(--rule); background: var(--surface); padding: 44px 24px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
-  .drop:hover, .drop.over { border-color: var(--ink); }
-  .drop strong { display: block; font-weight: 500; margin-bottom: 4px; }
-  .drop span { color: var(--muted); font-size: 14px; }
-  .err { color: var(--red); font-size: 14px; margin-top: 10px; }
+  /* ---------------------------------------------------------------- çalışma alanı */
+  .work { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); overflow: hidden; }
+  .col { display: flex; flex-direction: column; min-width: 0; }
+  .col + .col { border-left: 1px solid var(--border); }
+  .chead { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 16px; border-bottom: 1px solid var(--border); }
+  .chead h2 { font-size: 13.5px; font-weight: 600; margin: 0; color: var(--text); }
+  .chead .r { margin-left: auto; display: flex; gap: 12px; align-items: center; font-size: 13px; }
+  textarea.ed { flex: 1; width: 100%; min-height: 320px; border: 0; padding: 16px; resize: vertical; background: transparent; font: 13.5px/1.75 var(--mono); color: var(--text); outline: none; }
+  textarea.ed::placeholder { color: var(--text-3); }
+  .cfoot { display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface-2); flex-wrap: wrap; }
+  .cfoot .hint { margin-left: auto; font-size: 12px; color: var(--text-3); }
 
-  footer { max-width: 1320px; margin: 0 auto; padding: 0 32px 32px; color: var(--muted); font-size: 12.5px; display: flex; gap: 18px; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 20px; height: 100%; }
+  .tabs button { border: 0; background: none; padding: 0; height: 100%; cursor: pointer; color: var(--text-2); font-size: 13.5px; font-weight: 500; border-bottom: 2px solid transparent; transition: color var(--ease), border-color var(--ease); }
+  .tabs button:hover { color: var(--text); }
+  .tabs button[aria-selected="true"] { color: var(--navy); border-bottom-color: var(--teal); }
 
-  @media (max-width: 900px) {
-    .top { padding: 0 16px; gap: 14px; }
-    .status { display: none; }
-    main { padding: 20px 16px 48px; }
-    footer { padding: 0 16px 24px; }
-    .split { grid-template-columns: 1fr; }
-    .pane + .pane { border-left: 0; border-top: 1px solid var(--rule); }
-    .hide-sm { display: none; }
+  .doc { flex: 1; min-height: 320px; padding: 16px; font: 13.5px/1.95 var(--mono); white-space: pre-wrap; word-break: break-word; overflow: auto; }
+  .doc[hidden] { display: none; }
+  .empty { font-family: var(--sans); white-space: normal; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; color: var(--text-2); max-width: 44ch; padding-top: 4px; line-height: 1.55; }
+  .empty b { color: var(--text); font-weight: 500; }
+  .rd { background: var(--navy); color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 11.5px; font-weight: 500; letter-spacing: .02em; white-space: nowrap; cursor: help; }
+  .rd.m6 { background: var(--danger); }
+  .reveal .rd { background: var(--teal-soft); color: var(--navy); font-size: inherit; font-weight: inherit; letter-spacing: 0; padding: 0 2px; box-shadow: inset 0 -2px 0 var(--teal); border-radius: 2px; white-space: normal; }
+  .reveal .rd.m6 { background: var(--danger-soft); color: var(--danger-text); box-shadow: inset 0 -2px 0 var(--danger); }
+  .tt { color: var(--navy); background: var(--bg); border-radius: 3px; padding: 0 3px; box-shadow: inset 0 0 0 1px var(--border); }
+  .tt.m6 { color: var(--danger-text); background: var(--danger-soft); box-shadow: none; }
+  .back { background: var(--teal-soft); color: var(--navy); border-radius: 3px; padding: 0 3px; }
+
+  .skel { display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
+  .skel i { display: block; height: 10px; border-radius: 4px; background: var(--border); animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .45; } }
+  @media (prefers-reduced-motion: reduce) { .skel i { animation: none; } * { transition: none !important; } }
+
+  /* ---------------------------------------------------------------- sonuç */
+  .result { margin-top: 24px; }
+  .result[hidden] { display: none; }
+  .sumbar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 32px; align-items: center; padding: 20px 24px; }
+  .sumbar .lead { font-size: 15px; color: var(--text); }
+  .sumbar .lead strong { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: var(--navy); margin-right: 6px; vertical-align: -2px; }
+  .sumbar .lead small { display: block; color: var(--text-2); font-size: 12.5px; margin-top: 2px; }
+  .dist .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--bg); gap: 2px; }
+  .dist .bar i { display: block; height: 100%; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 10px; font-size: 12.5px; color: var(--text-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 8px; height: 8px; border-radius: 2px; }
+  .legend b { color: var(--text); font-weight: 500; }
+  .result .note { margin-top: 16px; }
+  .tbl { margin-top: 16px; overflow: hidden; }
+  .tbl .thead { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .tbl .thead h3 { margin: 0; font-size: 14px; font-weight: 600; }
+  .tbl .thead span { margin-left: auto; font-size: 12.5px; color: var(--text-2); }
+  .tscroll { overflow-x: auto; }
+
+  section.sec { margin-top: 40px; }
+  section.sec > h2 { font-size: 16px; font-weight: 600; color: var(--navy); margin: 0 0 4px; letter-spacing: -0.01em; }
+  section.sec > p { margin: 0 0 16px; color: var(--text-2); max-width: 70ch; }
+
+  /* ---------------------------------------------------------------- dosya */
+  .drop { display: flex; align-items: center; gap: 20px; padding: 28px; border: 1px dashed var(--border-2); border-radius: var(--r); background: var(--surface); cursor: pointer; transition: border-color var(--ease), background var(--ease); }
+  .drop:hover, .drop.over { border-color: var(--teal); background: var(--surface-2); }
+  .drop .ico { width: 44px; height: 44px; border-radius: 8px; background: var(--teal-soft); color: var(--teal); display: grid; place-items: center; flex: none; }
+  .drop .ico svg { width: 20px; height: 20px; }
+  .drop b { display: block; font-weight: 500; color: var(--text); }
+  .drop span { color: var(--text-2); font-size: 13px; }
+  .drop .btn { margin-left: auto; }
+  .progress { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 12px; }
+  .progress i { display: block; height: 100%; width: 35%; background: var(--teal); animation: slide 1.1s ease-in-out infinite; }
+  @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .facts div { padding: 18px 24px; }
+  .facts div + div { border-left: 1px solid var(--border); }
+  .facts strong { display: block; font-size: 22px; font-weight: 600; color: var(--navy); letter-spacing: -0.015em; }
+  .facts small { color: var(--text-2); font-size: 12.5px; }
+  .fileinfo { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-2); flex-wrap: wrap; }
+  .fileinfo .btn { margin-left: auto; }
+  .chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-size: 12px; padding: 1px 8px; border-radius: 4px; background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+
+  footer.foot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 24px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-3); }
+
+  /* ---------------------------------------------------------------- duyarlı */
+  @media (max-width: 1080px) {
+    .wrap { padding: 28px 28px 56px; }
+    .sumbar { grid-template-columns: 1fr; gap: 16px; }
   }
+  @media (max-width: 880px) {
+    .app { grid-template-columns: 1fr; }
+    .side { position: fixed; inset: 0 auto 0 0; width: 272px; z-index: 30; transform: translateX(-100%); transition: transform 200ms ease; box-shadow: none; }
+    .side.open { transform: none; box-shadow: 0 0 0 100vmax rgba(23, 43, 77, .28); }
+    .mbar { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; }
+    .mbar .logo { padding: 0; border: 0; }
+    .mbar button { margin-left: auto; width: 36px; height: 36px; border: 1px solid var(--border-2); background: var(--surface); border-radius: var(--r-sm); display: grid; place-items: center; cursor: pointer; }
+    .wrap { padding: 20px 16px 48px; }
+    .phead { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .phead .actions { margin-left: 0; }
+    .steps { grid-template-columns: 1fr; gap: 10px; }
+    .steps li::after { display: none; }
+    .work { grid-template-columns: 1fr; }
+    .col + .col { border-left: 0; border-top: 1px solid var(--border); }
+    textarea.ed, .doc { min-height: 220px; }
+    .cfoot .hint { display: none; }
+    .drop { flex-direction: column; align-items: flex-start; }
+    .drop .btn { margin-left: 0; }
+    .facts { grid-template-columns: 1fr; }
+    .facts div + div { border-left: 0; border-top: 1px solid var(--border); }
+    .hide-sm { display: none; }
+    .chead { height: auto; min-height: 48px; flex-wrap: wrap; padding: 6px 16px; row-gap: 4px; }
+    .tabs { height: 40px; }
+    .tabs button, .switch { white-space: nowrap; }
+    /* Tablolar mobilde satır başına bir blok olur. */
+    .tbl thead { display: none; }
+    .tbl tbody tr { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    .tbl tbody tr:last-child { border-bottom: 0; }
+    .tbl td { display: block; padding: 0; border: 0; }
+    .tbl td:nth-child(n+3) { grid-column: 1 / -1; }
+    .tbl td[colspan] { grid-column: 1 / -1; }
+    .tbl td.hide-sm { display: none; }
+  }
+  .sm-only { display: none; }
+  @media (max-width: 880px) { .sm-only { display: inline; } }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <a class="brand" href="/">
-    <svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><path d="M10 1 L18.5 4.2 V10.6 C18.5 15.6 14.9 19.4 10 21 C5.1 19.4 1.5 15.6 1.5 10.6 V4.2 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="5.2" y="8.2" width="9.6" height="2.4" fill="currentColor"/><rect x="5.2" y="12.2" width="6" height="2.4" fill="currentColor"/></svg>
-    kalkan
-  </a>
-  <nav class="nav">
-    <button data-view="mesaj" class="on">Mesaj</button>
-    <button data-view="dosya">Dosya</button>
-    <a href="/panel">Panel</a>
-  </nav>
-  <div class="status">
-    <span id="stServer"><span class="dot"></span>sunucu</span>
-    <span id="stModel"><span class="dot"></span>model</span>
-  </div>
-</header>
+<!-- Ortak simgeler -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-msg" viewBox="0 0 16 16"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"/><path d="M5 6.2h6M5 8.2h4"/></symbol>
+  <symbol id="i-file" viewBox="0 0 16 16"><path d="M4 1.8h5l3 3v9.4H4z"/><path d="M9 1.8v3h3M6 8.5h4M6 11h4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2.5 13.5h11M4.5 11V7.5M8 11V4M11.5 11V8.8"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M3 2.5h7.5a2 2 0 0 1 2 2v9H5a2 2 0 0 1-2-2z"/><path d="M3 11.5a2 2 0 0 1 2-2h7.5M6 5.5h4"/></symbol>
+  <symbol id="i-up" viewBox="0 0 16 16"><path d="M8 10.5V3M5 6l3-3 3 3M3 10.5v2.5h10v-2.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2l6.5 11.5h-13z"/><path d="M8 6.5v3M8 11.6v.1"/></symbol>
+  <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 16 16"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></symbol>
+  <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 3v7.5M5 7.5l3 3 3-3M3 13h10"/></symbol>
+</svg>
+<template id="logo-mark"><span class="mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="2.2" rx=".6" fill="#fff"/><rect x="2" y="7" width="7.5" height="2.2" rx=".6" fill="#7fb6c5"/><rect x="2" y="11" width="10" height="2.2" rx=".6" fill="#fff"/></svg></span></template>
 
-<main>
-  <!-- MESAJ -->
-  <div class="view" id="v-mesaj">
-    <h1>Mesaj tarama</h1>
-    <p class="lede">Yapay zekâ aracına göndermeden önce metni burada tarayın. Kişisel veriler ve ticari sırlar bu bilgisayarda gizlenir; cevaptaki etiketler yine burada gerçek değerlere döner.</p>
+<div class="mbar">
+  <a class="logo" href="/"><span data-logo></span><span><b>Kalkan</b></span></a>
+  <button id="menuBtn" aria-label="Menüyü aç" aria-expanded="false"><svg class="i"><use href="#i-menu"/></svg></button>
+</div>
 
-    <div class="split">
-      <div class="pane">
-        <div class="pane-head">
-          <span class="label">Gönderilecek metin</span>
-          <div class="aside">
-            <select id="sample" aria-label="Örnek metin">
-              <option value="">Örnek yükle…</option>
-              <option value="iade">Müşteri iadesi</option>
-              <option value="ik">Performans notu (İK)</option>
-              <option value="hukuk">Dava özeti (hukuk)</option>
-            </select>
+<div class="app">
+  <aside class="side" id="side">
+    <a class="logo" href="/"><span data-logo></span><span><b>Kalkan</b><small>KVKK veri koruma</small></span></a>
+    <nav class="menu" aria-label="Ana menü">
+      <div class="grp">Çalışma alanı</div>
+      <a href="/#mesaj" data-view="mesaj"><svg class="i"><use href="#i-msg"/></svg>Mesaj tarama</a>
+      <a href="/#dosya" data-view="dosya"><svg class="i"><use href="#i-file"/></svg>Dosya gizleme</a>
+      <div class="grp">Yönetim</div>
+      <a href="/panel"><svg class="i"><use href="#i-chart"/></svg>Genel bakış</a>
+      <a href="/panel#sozluk"><svg class="i"><use href="#i-book"/></svg>Şirket sözlüğü</a>
+    </nav>
+    <div class="env" aria-live="polite">
+      <div class="t">Yerel ortam</div>
+      <div class="row"><i class="dot" id="dServer"></i><span>Sunucu</span><span id="tServer">—</span></div>
+      <div class="row"><i class="dot" id="dModel"></i><span>Bağlamsal model</span><span id="tModel">—</span></div>
+      <p>Tarama bu bilgisayarda yapılır; gerçek değerler cihazdan çıkmaz.</p>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="wrap">
+      <div class="note danger" id="offline" hidden style="margin-bottom:24px">
+        <svg class="i"><use href="#i-alert"/></svg>
+        <div><b>Yerel sunucuya ulaşılamıyor</b>Tarama yapılamaz; güvenlik gereği hiçbir metin gönderilmez. Sunucuyu <code>backend</code> klasöründe <code>uvicorn kalkan.api:app --port 8765</code> komutuyla başlatın.</div>
+      </div>
+
+      <!-- ============================================================ MESAJ -->
+      <div class="view" id="v-mesaj">
+        <header class="phead">
+          <div>
+            <div class="crumb">Çalışma alanı</div>
+            <h1>Mesaj tarama</h1>
+            <p>Yapay zekâ aracına göndermeden önce metni tarayın. Kişisel veriler ve ticari bilgiler bu bilgisayarda etiketlerle değiştirilir; gelen cevaptaki etiketler yine burada gerçek değerlere döner.</p>
+          </div>
+        </header>
+
+        <ol class="steps" id="steps">
+          <li class="now"><span><b>Metni tara</b><small>Hassas değerler bulunur ve gizlenir</small></span></li>
+          <li><span><b>Gizlenmiş metni gönder</b><small>Yapay zekâ yalnızca etiketleri görür</small></span></li>
+          <li><span><b>Cevabı geri çevir</b><small>Etiketler gerçek değerlere döner</small></span></li>
+        </ol>
+
+        <div class="panel work">
+          <div class="col">
+            <div class="chead">
+              <h2 id="lblInput">Gönderilecek metin</h2>
+              <div class="r">
+                <label class="sr" for="sample">Örnek metin yükle</label>
+                <select id="sample">
+                  <option value="">Örnek yükle</option>
+                  <option value="iade">Müşteri iadesi</option>
+                  <option value="ik">Performans notu (İK)</option>
+                  <option value="hukuk">Dava özeti (hukuk)</option>
+                </select>
+              </div>
+            </div>
+            <textarea class="ed" id="input" spellcheck="false" aria-labelledby="lblInput" placeholder="Göndermek istediğiniz metni buraya yapıştırın."></textarea>
+            <div class="cfoot">
+              <button class="btn" id="scanBtn">Tara ve gizle</button>
+              <label class="switch"><input type="checkbox" id="useLlm" checked><span>Bağlamsal tarama<small>Sağlık, inanç, ceza, ticari bilgi</small></span></label>
+              <span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="chead">
+              <div class="tabs" role="tablist" aria-label="Sonuç görünümü">
+                <button role="tab" id="tPreview" aria-selected="true" aria-controls="preview">Önizleme</button>
+                <button role="tab" id="tOut" aria-selected="false" aria-controls="outgoing" tabindex="-1">Giden metin</button>
+              </div>
+              <div class="r">
+                <label class="switch" id="revealWrap"><input type="checkbox" id="reveal"><span>Değerleri göster</span></label>
+                <button class="btn sec sm" id="copyBtn" hidden><svg class="i"><use href="#i-copy"/></svg>Kopyala</button>
+              </div>
+            </div>
+            <div class="doc" id="preview" role="tabpanel" aria-labelledby="tPreview">
+              <div class="empty"><b>Henüz tarama yapılmadı</b>Metni tarattığınızda gizlenen kısımlar burada koyu şeritlerle gösterilir. Şeritler yapay zekâ aracına gitmeyecek değerlerdir.</div>
+            </div>
+            <div class="doc" id="outgoing" role="tabpanel" aria-labelledby="tOut" hidden></div>
           </div>
         </div>
-        <textarea class="editor" id="input" spellcheck="false" placeholder="Metni yapıştırın…"></textarea>
-        <div class="pane-foot">
-          <button class="btn" id="scanBtn">Tara ve gizle</button>
-          <label class="switch" title="Bağlamsal tarama: sağlık, din, sendika, ceza, ticari sır ve listede olmayan isimler"><input type="checkbox" id="useLlm" checked> Bağlamsal tarama</label>
-          <span class="mono" id="scanMeta" style="margin-left:auto;color:var(--muted);font-size:12px"></span>
-        </div>
-      </div>
 
-      <div class="pane">
-        <div class="pane-head">
-          <div class="tabs" role="tablist">
-            <button class="on" data-tab="preview">Önizleme</button>
-            <button data-tab="outgoing">Giden metin</button>
+        <div class="result" id="result" hidden aria-live="polite">
+          <div class="panel sumbar">
+            <div class="lead"><strong id="sTotal">0</strong>değer gizlendi<small id="sMeta"></small></div>
+            <div class="dist">
+              <div class="bar" id="distBar"></div>
+              <div class="legend" id="legend"></div>
+            </div>
           </div>
-          <div class="aside">
-            <label class="switch" id="revealWrap" title="Gizlenen değerleri sadece bu ekranda göster"><input type="checkbox" id="reveal"> Değerleri göster</label>
-            <button class="linkbtn" id="copyBtn" hidden>Kopyala</button>
+          <div class="note danger" id="m6Note" hidden>
+            <svg class="i"><use href="#i-alert"/></svg>
+            <div><b>Özel nitelikli kişisel veri tespit edildi</b><span id="m6Text"></span></div>
+          </div>
+          <div class="panel tbl">
+            <div class="thead"><h3>Bulgular</h3><span>Önem derecesine göre sıralı</span></div>
+            <div class="tscroll">
+              <table>
+                <thead><tr><th>Önem</th><th>Etiket</th><th>Veri türü</th><th>Gerçek değer</th><th class="hide-sm">Yakalayan katman</th></tr></thead>
+                <tbody id="findings"></tbody>
+              </table>
+            </div>
           </div>
         </div>
-        <div class="doc" id="preview"><span class="empty">Taranan metin burada görünecek. Siyah şeritler, yapay zekâ aracına gitmeyecek kısımlardır.</span></div>
-        <div class="doc" id="outgoing" hidden></div>
-      </div>
-    </div>
 
-    <div id="results" hidden>
-      <div class="summary">
-        <div><div class="n" id="sTotal">0</div><div class="k">değer gizlendi</div></div>
-        <div><div class="n" id="sTypes">0</div><div class="k">farklı veri türü</div></div>
-        <div><div class="n" id="sM6">0</div><div class="k">özel nitelikli (md. 6)</div></div>
-        <div><div class="n" id="sMs">0</div><div class="k">ms, bu bilgisayarda</div></div>
+        <section class="sec" id="replySec">
+          <h2>Cevabı geri çevir</h2>
+          <p>Yapay zekâ aracından gelen cevabı yapıştırın. İçindeki etiketler bu oturumun eşleme tablosuna göre gerçek değerlerle değiştirilir. <button class="lnk" id="fakeBtn">Örnek cevap ekle</button></p>
+          <div class="panel work">
+            <div class="col">
+              <div class="chead"><h2 id="lblReply">Gelen cevap</h2></div>
+              <textarea class="ed" id="reply" spellcheck="false" aria-labelledby="lblReply" style="min-height:200px" placeholder="Sayın [KISI_1], talebiniz …"></textarea>
+              <div class="cfoot">
+                <button class="btn" id="unmaskBtn">Geri çevir</button>
+                <button class="btn sec" id="resetBtn">Oturumu temizle</button>
+              </div>
+            </div>
+            <div class="col">
+              <div class="chead"><h2>Okunacak hâli</h2><div class="r"><button class="btn sec sm" id="copyBackBtn" hidden><svg class="i"><use href="#i-copy"/></svg>Kopyala</button></div></div>
+              <div class="doc" id="restored" style="min-height:200px">
+                <div class="empty"><b>Geri çevrilecek cevap yok</b>Geri çevrilen değerler açık mavi zeminle işaretlenir.</div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-      <p class="alert" id="m6Alert" hidden></p>
-      <div class="ledger">
-        <table>
-          <thead><tr><th>Etiket</th><th>Tür</th><th>Gerçek değer</th><th class="hide-sm">Yakalayan katman</th></tr></thead>
-          <tbody id="ledger"></tbody>
-        </table>
-      </div>
-    </div>
 
-    <section class="block">
-      <h2>Cevabı geri çevir</h2>
-      <p class="sub">Yapay zekânın cevabını yapıştırın; içindeki etiketler gerçek değerlerle değiştirilir. <button class="linkbtn" id="fakeBtn">Örnek cevap ekle</button></p>
-      <div class="split">
-        <div class="pane">
-          <div class="pane-head"><span class="label">Gelen cevap</span></div>
-          <textarea class="editor" id="reply" spellcheck="false" style="min-height:180px" placeholder="Sayın [KISI_1], …"></textarea>
-          <div class="pane-foot"><button class="btn" id="unmaskBtn">Geri çevir</button><button class="btn ghost" id="resetBtn">Oturumu temizle</button></div>
+      <!-- ============================================================ DOSYA -->
+      <div class="view" id="v-dosya" hidden>
+        <header class="phead">
+          <div>
+            <div class="crumb">Çalışma alanı</div>
+            <h1>Dosya gizleme</h1>
+            <p>Müşteri listesi, bordro veya sipariş dökümü gibi dosyaları yapay zekâ aracına yüklemeden önce buradan geçirin. Aynı kişi dosyanın her yerinde aynı etiketi alır; tutar, adet ve tarih sütunları değişmez, analiz bozulmaz.</p>
+          </div>
+        </header>
+
+        <div class="drop" id="drop" role="button" tabindex="0" aria-describedby="dropHint">
+          <span class="ico"><svg class="i"><use href="#i-up"/></svg></span>
+          <div><b id="dropTitle">Dosyayı buraya bırakın</b><span id="dropHint">CSV, XLSX veya TXT. Dosya bu bilgisayarda işlenir, hiçbir yere yüklenmez.</span></div>
+          <span class="btn sec">Dosya seç</span>
+          <input type="file" id="file" accept=".csv,.xlsx,.txt" hidden>
         </div>
-        <div class="pane">
-          <div class="pane-head"><span class="label">Okunacak hâli</span><div class="aside"><button class="linkbtn" id="copyBackBtn" hidden>Kopyala</button></div></div>
-          <div class="doc" id="restored" style="min-height:180px"><span class="empty">Geri çevrilen değerler mavi zeminle gösterilir.</span></div>
-        </div>
-      </div>
-    </section>
-  </div>
+        <div class="progress" id="fileProg" hidden><i></i></div>
+        <div class="note danger" id="fileErr" hidden style="margin-top:16px"><svg class="i"><use href="#i-alert"/></svg><div><b>Dosya işlenemedi</b><span id="fileErrText"></span></div></div>
 
-  <!-- DOSYA -->
-  <div class="view" id="v-dosya" hidden>
-    <h1>Dosya gizleme</h1>
-    <p class="lede">Müşteri listesi, bordro veya sipariş dökümü gibi Excel/CSV dosyalarını yapay zekâ aracına yüklemeden önce buradan geçirin. Aynı kişi dosyanın her yerinde aynı etiketi alır; tutar, adet, tarih gibi sütunlar olduğu gibi kalır, analiz bozulmaz.</p>
-    <label class="drop" id="drop">
-      <input type="file" id="file" accept=".csv,.xlsx,.txt" hidden>
-      <strong id="dropTitle">Dosyayı buraya bırakın veya seçin</strong>
-      <span>CSV, XLSX veya TXT · dosya bu bilgisayardan çıkmaz</span>
-    </label>
-    <div class="err" id="fileErr" hidden></div>
-    <div id="fileResult" hidden>
-      <div class="summary">
-        <div><div class="n" id="fTotal">0</div><div class="k">değer gizlendi</div></div>
-        <div><div class="n" id="fRows">0</div><div class="k">satır</div></div>
-        <div><div class="n" id="fMs">0</div><div class="k">saniye</div></div>
+        <div id="fileResult" hidden style="margin-top:24px" aria-live="polite">
+          <div class="panel">
+            <div class="facts">
+              <div><strong id="fTotal">0</strong><small>değer gizlendi</small></div>
+              <div><strong id="fRows">0</strong><small>satır işlendi</small></div>
+              <div><strong id="fTime">0</strong><small>işlem süresi</small></div>
+            </div>
+            <div class="fileinfo">
+              <span id="fName"></span>
+              <span id="fHints"></span>
+              <a class="btn sec sm" id="fAgain" download><svg class="i"><use href="#i-down"/></svg>Tekrar indir</a>
+            </div>
+          </div>
+          <div class="panel tbl">
+            <div class="thead"><h3>Gizlenen veri türleri</h3><span>Dosya indirildi</span></div>
+            <div class="tscroll">
+              <table>
+                <thead><tr><th>Önem</th><th>Veri türü</th><th>Adet</th><th class="hide-sm">Tespit yöntemi</th></tr></thead>
+                <tbody id="fTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <section class="sec">
+          <div class="note info"><svg class="i"><use href="#i-info"/></svg><div><b>Sütun başlıkları da okunur</b>"Ad Soyad", "TC Kimlik", "Telefon", "E-posta", "IBAN" ve "Adres" gibi başlıkların altındaki hücreler içerikleri ne olursa olsun gizlenir. Diğer hücreler mesaj taramasındaki katmanlardan geçer.</div></div>
+        </section>
       </div>
-      <p class="sub" id="fNote" style="color:var(--muted);font-size:14px;margin:0 0 14px"></p>
-      <div class="ledger"><table><thead><tr><th>Tür</th><th>Adet</th><th>Nasıl</th></tr></thead><tbody id="fTable"></tbody></table></div>
+
+      <footer class="foot">
+        <span>Kalkan · yerel sunucu 127.0.0.1:8765</span>
+        <span>Gerçek değerler yalnızca bu bilgisayarın belleğinde tutulur ve oturum kapanınca silinir.</span>
+      </footer>
     </div>
   </div>
-</main>
-
-<footer>
-  <span>Kalkan · yerel sunucu 127.0.0.1:8765</span>
-  <span>Gerçek değerler yalnızca bu bilgisayarın belleğinde tutulur.</span></footer>
+</div>
 
 <script>
 const API = location.origin.startsWith("http") ? location.origin : "http://127.0.0.1:8765";
 const SESSION = "demo-" + Math.random().toString(36).slice(2, 10);
-const M6 = new Set(["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"]);
+
+// Veri türleri ve görüntüleme kategorileri. Kategori yalnızca sunumdur; tespit mantığını değiştirmez.
 const TYPE = {
-  TC: "T.C. kimlik no", IBAN: "IBAN", KART: "Kart numarası", VKN: "Vergi kimlik no", EPOSTA: "E-posta",
-  TELEFON: "Telefon", PLAKA: "Araç plakası", ADRES: "Adres", KISI: "Kişi adı", KURUM_KISI: "Dolaylı kimlik",
-  SAGLIK: "Sağlık verisi", DIN_INANC: "Din / inanç", SIYASI: "Siyasi görüş", SENDIKA: "Sendika üyeliği",
-  CEZA: "Ceza / sabıka", BIYOMETRIK: "Biyometrik veri", TICARI_SIR: "Ticari sır", SOZLUK: "Şirket sözlüğü",
+  TC: "T.C. kimlik numarası", IBAN: "IBAN", KART: "Kart numarası", VKN: "Vergi kimlik numarası",
+  EPOSTA: "E-posta adresi", TELEFON: "Telefon numarası", PLAKA: "Araç plakası", ADRES: "Açık adres",
+  KISI: "Kişi adı", KURUM_KISI: "Dolaylı kimlik bilgisi", SAGLIK: "Sağlık verisi", DIN_INANC: "Din / inanç",
+  SIYASI: "Siyasi görüş", SENDIKA: "Sendika üyeliği", CEZA: "Ceza mahkûmiyeti", BIYOMETRIK: "Biyometrik veri",
+  TICARI_SIR: "Ticari bilgi", SOZLUK: "Şirket sözlüğü terimi",
 };
+const CATS = {
+  m6:     { label: "Özel nitelikli (md. 6)", color: "#be4b49", sev: "high", rank: 0, types: ["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"] },
+  kimlik: { label: "Kimlik / finansal",      color: "#172b4d", sev: "high", rank: 1, types: ["TC", "IBAN", "KART", "VKN"] },
+  kisi:   { label: "Kişi / iletişim",        color: "#24748a", sev: "mid",  rank: 2, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
+  ticari: { label: "Ticari bilgi",           color: "#b9852e", sev: "mid",  rank: 3, types: ["TICARI_SIR", "SOZLUK"] },
+};
+const catOf = (t) => Object.values(CATS).find((c) => c.types.includes(t)) || CATS.kisi;
+const SEV = { high: ["Yüksek", "high"], mid: ["Orta", "mid"] };
 const LAYER = {
-  regex: ["Desen + sağlama", "var(--ink)"],
-  isim: ["İsim listesi", "#7a766d"],
-  sozluk: ["Şirket sözlüğü", "#b07a12"],
-  llm: ["Bağlamsal (Gemma)", "#2a47b8"],
+  regex: ["Desen + sağlama", "#172b4d"], isim: ["İsim listesi", "#8492a6"],
+  sozluk: ["Şirket sözlüğü", "#b9852e"], llm: ["Bağlamsal model", "#24748a"],
 };
 // Tüm örnekler uydurmadır; TC/IBAN/VKN algoritmik olarak geçerli ama kimseye ait değildir.
 const SAMPLES = {
@@ -286,38 +509,64 @@ Dilekçe için savunma taslağı hazırla.`,
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = (n) => new Intl.NumberFormat("tr-TR").format(n);
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+const TAG_RE = /\[([A-Z][A-Z_]*)_(\d+)\]/g;
 let last = null;
+
+document.querySelectorAll("[data-logo]").forEach((el) => el.replaceWith($("logo-mark").content.cloneNode(true)));
 
 async function api(path, opts = {}) {
   const r = await fetch(API + path, { headers: { "Content-Type": "application/json" }, ...opts });
-  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `Sunucu ${r.status} hatası döndürdü.`);
   return r.json();
 }
 
-function setStatus(el, ok, text) { el.innerHTML = `<span class="dot ${ok ? "ok" : "off"}"></span>${esc(text)}`; }
+// ---------------------------------------------------------------- ortam durumu
 async function health() {
   try {
     const h = await api("/health");
-    setStatus($("stServer"), true, "yerel sunucu");
-    setStatus($("stModel"), h.llm, h.llm ? h.model : "bağlamsal tarama kapalı");
+    $("dServer").className = "dot ok"; $("tServer").textContent = "çalışıyor";
+    $("dModel").className = "dot " + (h.llm ? "ok" : "off"); $("tModel").textContent = h.llm ? h.model : "kapalı";
+    $("offline").hidden = true;
   } catch {
-    setStatus($("stServer"), false, "sunucu kapalı");
-    setStatus($("stModel"), false, "—");
+    $("dServer").className = "dot off"; $("tServer").textContent = "kapalı";
+    $("dModel").className = "dot"; $("tModel").textContent = "—";
+    $("offline").hidden = false;
   }
 }
 
 // ---------------------------------------------------------------- görünümler
-document.querySelectorAll("[data-view]").forEach((b) => b.onclick = () => {
-  document.querySelectorAll("[data-view]").forEach((x) => x.classList.toggle("on", x === b));
-  document.querySelectorAll(".view").forEach((v) => v.hidden = v.id !== "v-" + b.dataset.view);
-  store.set("kalkan.view", b.dataset.view);
-});
-document.querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => {
-  document.querySelectorAll("[data-tab]").forEach((x) => x.classList.toggle("on", x === b));
-  const out = b.dataset.tab === "outgoing";
+function show(view) {
+  if (!["mesaj", "dosya"].includes(view)) view = "mesaj";
+  document.querySelectorAll(".view").forEach((v) => v.hidden = v.id !== "v-" + view);
+  document.querySelectorAll(".menu a[data-view]").forEach((a) =>
+    a.dataset.view === view ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  document.title = "Kalkan · " + (view === "dosya" ? "Dosya gizleme" : "Mesaj tarama");
+  store.set("kalkan.view", view);
+  $("side").classList.remove("open"); $("menuBtn").setAttribute("aria-expanded", "false");
+}
+window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+$("menuBtn").onclick = () => { const o = $("side").classList.toggle("open"); $("menuBtn").setAttribute("aria-expanded", String(o)); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("side").classList.remove("open"); });
+
+function setStep(n) {
+  document.querySelectorAll("#steps li").forEach((li, i) => {
+    li.className = i < n ? "done" : i === n ? "now" : "";
+  });
+}
+
+// ---------------------------------------------------------------- sekmeler
+function selectTab(out) {
+  $("tPreview").setAttribute("aria-selected", String(!out)); $("tPreview").tabIndex = out ? -1 : 0;
+  $("tOut").setAttribute("aria-selected", String(out)); $("tOut").tabIndex = out ? 0 : -1;
   $("preview").hidden = out; $("outgoing").hidden = !out;
   $("revealWrap").hidden = out; $("copyBtn").hidden = !out || !last;
+}
+$("tPreview").onclick = () => selectTab(false);
+$("tOut").onclick = () => selectTab(true);
+document.querySelector('[role="tablist"]').addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const out = $("tPreview").getAttribute("aria-selected") === "true"; selectTab(out); (out ? $("tOut") : $("tPreview")).focus(); }
 });
 
 // ---------------------------------------------------------------- tarama
@@ -329,8 +578,7 @@ function renderPreview(text, findings) {
     html += `<span class="rd${f.special ? " m6" : ""}" data-v="${esc(f.value)}" data-t="${tag}" title="${esc(TYPE[f.type] || f.type)}">${tag}</span>`;
     pos = f.end;
   }
-  html += esc(text.slice(pos));
-  $("preview").innerHTML = html;
+  $("preview").innerHTML = html + esc(text.slice(pos));
   applyReveal();
 }
 function applyReveal() {
@@ -338,53 +586,81 @@ function applyReveal() {
   $("preview").classList.toggle("reveal", on);
   $("preview").querySelectorAll(".rd").forEach((s) => s.textContent = on ? s.dataset.v : s.dataset.t);
 }
-const tagHtml = (s) => esc(s).replace(/\[([A-Z][A-Z_]*)_(\d+)\]/g, (m, t) => `<span class="tagtxt${M6.has(t) ? " m6" : ""}">${m}</span>`);
+const tagHtml = (s) => esc(s).replace(TAG_RE, (m, t) => `<span class="tt${CATS.m6.types.includes(t) ? " m6" : ""}">${m}</span>`);
+
+function renderDistribution(items) {
+  const byCat = {};
+  for (const f of items) { const c = catOf(f.type); byCat[c.label] = byCat[c.label] || { c, n: 0 }; byCat[c.label].n++; }
+  const rows = Object.values(byCat).sort((a, b) => a.c.rank - b.c.rank);
+  const total = items.length || 1;
+  $("distBar").innerHTML = rows.map(({ c, n }) => `<i style="width:${(n / total) * 100}%;background:${c.color}" title="${c.label}: ${n}"></i>`).join("");
+  $("legend").innerHTML = rows.map(({ c, n }) => `<span><i style="background:${c.color}"></i>${c.label} <b>${n}</b></span>`).join("");
+}
 
 async function scan() {
   const text = $("input").value;
-  if (!text.trim()) return;
+  if (!text.trim()) { $("input").focus(); return; }
   const btn = $("scanBtn"); btn.disabled = true; btn.textContent = "Taranıyor…";
+  selectTab(false);
+  $("preview").innerHTML = `<div class="skel" aria-label="Taranıyor"><i style="width:92%"></i><i style="width:78%"></i><i style="width:85%"></i><i style="width:60%"></i></div>`;
   try {
     const r = await api("/mask", { method: "POST", body: JSON.stringify({ text, session: SESSION, use_llm: $("useLlm").checked }) });
     last = r;
     renderPreview(text, r.findings);
     $("outgoing").innerHTML = tagHtml(r.masked);
-    $("copyBtn").hidden = $("outgoing").hidden;
-    $("scanMeta").textContent = r.llm_used ? "4 katman" : "3 katman · bağlamsal tarama kapalı";
-    const m6 = r.findings.filter((f) => f.special);
-    $("sTotal").textContent = r.findings.length;
-    $("sTypes").textContent = Object.keys(r.counts).length;
-    $("sM6").textContent = m6.length;
-    $("sMs").textContent = Math.round(r.ms);
-    $("m6Alert").hidden = !m6.length;
+
+    // Aynı etiket birden çok yerde geçebilir; tabloda bir kez göster.
+    const seen = new Set();
+    const uniq = r.findings.filter((f) => !seen.has(f.tag) && seen.add(f.tag));
+    const sorted = [...uniq].sort((a, b) => catOf(a.type).rank - catOf(b.type).rank || a.start - b.start);
+    const layers = new Set(r.findings.map((f) => f.source)).size;
+    $("sTotal").textContent = fmt(r.findings.length);
+    $("sMeta").textContent = `${uniq.length} farklı değer · ${layers} katmanda yakalandı · ${fmt(Math.round(r.ms))} ms` + (r.llm_used ? "" : " · bağlamsal tarama kapalı");
+    renderDistribution(r.findings);
+
+    const m6 = uniq.filter((f) => f.special);
+    $("m6Note").hidden = !m6.length;
     if (m6.length) {
       const kinds = [...new Set(m6.map((f) => (TYPE[f.type] || f.type).toLowerCase()))].join(", ");
-      $("m6Alert").textContent = `Metinde KVKK md. 6 kapsamında özel nitelikli kişisel veri var (${kinds}). Bu veriler açık rıza olmadan üçüncü taraflara aktarılamaz.`;
+      $("m6Text").textContent = `Metin ${kinds} içeriyor. KVKK md. 6 kapsamındaki bu veriler, kanunda sayılan sıkı şartlar dışında işlenemez ve üçüncü taraflara aktarılamaz. Gizlenmiş metinde bu ifadeler yer almaz.`;
     }
-    const seen = new Set();
-    $("ledger").innerHTML = r.findings.filter((f) => !seen.has(f.tag) && seen.add(f.tag)).map((f) => {
-      const [name, color] = LAYER[f.source] || [f.source, "#999"];
-      return `<tr><td class="mono"><span class="tagtxt${f.special ? " m6" : ""}">${esc(f.tag)}</span></td><td>${esc(TYPE[f.type] || f.type)}</td><td class="val">${esc(f.value)}</td><td class="hide-sm"><span class="layer"><i style="background:${color}"></i>${name}</span></td></tr>`;
-    }).join("") || `<tr><td colspan="4" style="color:var(--muted)">Hassas veri bulunmadı.</td></tr>`;
-    $("results").hidden = false;
+
+    $("findings").innerHTML = sorted.map((f) => {
+      const c = catOf(f.type), [sev, cls] = SEV[c.sev], [lname, lcolor] = LAYER[f.source] || [f.source, "#8492a6"];
+      return `<tr>
+        <td><span class="badge ${cls}">${sev}</span></td>
+        <td><span class="tag${f.special ? " m6" : ""}">${esc(f.tag)}</span></td>
+        <td>${esc(TYPE[f.type] || f.type)}<div class="muted" style="font-size:12px">${c.label}</div></td>
+        <td class="val">${esc(f.value)}</td>
+        <td class="hide-sm"><span class="layer"><i style="background:${lcolor}"></i>${lname}</span></td>
+      </tr>`;
+    }).join("") || `<tr><td colspan="5"><div class="empty" style="padding:8px 0"><b>Hassas veri bulunmadı</b>Bu metin olduğu gibi gönderilebilir.</div></td></tr>`;
+    $("result").hidden = false;
+    $("copyBtn").hidden = $("outgoing").hidden;
+    setStep(1);
   } catch (e) {
-    $("preview").innerHTML = `<span class="empty" style="color:var(--red)">Yerel sunucuya ulaşılamadı; metin hiçbir yere gönderilmedi. (${esc(e.message)})</span>`;
+    $("preview").innerHTML = `<div class="empty"><b style="color:var(--danger-text)">Tarama yapılamadı</b>${esc(e.message === "Failed to fetch" ? "Yerel sunucuya ulaşılamadı. Metin hiçbir yere gönderilmedi." : e.message)}</div>`;
+    health();
   } finally { btn.disabled = false; btn.textContent = "Tara ve gizle"; }
 }
 
 // ---------------------------------------------------------------- geri çevirme
 async function unmask() {
   const raw = $("reply").value;
-  if (!raw.trim()) return;
-  const map = await api(`/mapping/${SESSION}`);
-  $("restored").innerHTML = esc(raw).replace(/\[([A-Z][A-Z_]*)_(\d+)\]/g, (m) =>
-    m in map ? `<span class="back" title="${m}">${esc(map[m])}</span>` : m);
-  $("restored").dataset.raw = (await api("/unmask", { method: "POST", body: JSON.stringify({ text: raw, session: SESSION }) })).text;
-  $("copyBackBtn").hidden = false;
+  if (!raw.trim()) { $("reply").focus(); return; }
+  try {
+    const map = await api(`/mapping/${SESSION}`);
+    $("restored").innerHTML = esc(raw).replace(TAG_RE, (m) => m in map ? `<span class="back" title="${m}">${esc(map[m])}</span>` : m);
+    $("restored").dataset.raw = (await api("/unmask", { method: "POST", body: JSON.stringify({ text: raw, session: SESSION }) })).text;
+    $("copyBackBtn").hidden = false;
+    setStep(3);
+  } catch (e) {
+    $("restored").innerHTML = `<div class="empty"><b style="color:var(--danger-text)">Geri çevrilemedi</b>${esc(e.message)}</div>`;
+  }
 }
 
 function fakeReply() {
-  if (!last || !last.findings.length) { $("reply").value = ""; $("reply").placeholder = "Önce yukarıda bir metni tarayın."; return; }
+  if (!last || !last.findings.length) { $("reply").placeholder = "Önce yukarıda bir metni tarayın."; $("reply").focus(); return; }
   const tag = (t) => (last.findings.find((f) => f.type === t) || {}).tag;
   const kisi = tag("KISI"), iban = tag("IBAN"), tel = tag("TELEFON"), mail = tag("EPOSTA");
   $("reply").value = [
@@ -394,42 +670,51 @@ function fakeReply() {
     tel || mail ? `Sorularınız için size ${[tel, mail].filter(Boolean).join(" veya ")} üzerinden ulaşabiliriz.` : "",
     "", "Saygılarımızla,", "Müşteri Hizmetleri",
   ].join("\n");
+  setStep(2);
 }
 
 // ---------------------------------------------------------------- dosya
 async function maskFile(f) {
-  $("fileErr").hidden = true;
+  $("fileErr").hidden = true; $("fileResult").hidden = true; $("fileProg").hidden = false;
   $("dropTitle").textContent = `${f.name} işleniyor…`;
   const fd = new FormData();
   fd.append("file", f); fd.append("session", SESSION); fd.append("use_llm", $("useLlm").checked ? "true" : "false");
   const t0 = performance.now();
   try {
     const r = await fetch(API + "/mask-file", { method: "POST", body: fd });
-    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `Sunucu ${r.status} hatası döndürdü.`);
     const rep = JSON.parse(r.headers.get("X-Kalkan-Report") || "{}");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(await r.blob());
-    a.download = (r.headers.get("Content-Disposition") || "").match(/filename="(.+)"/)?.[1] || "gizlenmis";
-    a.click();
+    const url = URL.createObjectURL(await r.blob());
+    const name = (r.headers.get("Content-Disposition") || "").match(/filename="(.+)"/)?.[1] || "gizlenmis";
+    const a = $("fAgain"); a.href = url; a.download = name; a.click();
+
     const sheets = rep.sayfalar ? Object.values(rep.sayfalar) : [rep];
     const rows = sheets.reduce((n, s) => n + (s.satir || 0), 0);
     const hinted = Object.assign({}, ...sheets.map((s) => s.sutun_ipuclari || {}));
     const hintedTypes = new Set(Object.values(hinted));
-    $("fTotal").textContent = rep.toplam || 0;
-    $("fRows").textContent = rows || "—";
-    $("fMs").textContent = ((performance.now() - t0) / 1000).toFixed(1);
-    $("fNote").textContent = `${a.download} indirildi.` + (Object.keys(hinted).length ? ` Sütun başlığından tanınanlar: ${Object.keys(hinted).join(", ")}.` : "");
-    $("fTable").innerHTML = Object.entries(rep.bulgular || {}).sort((x, y) => y[1] - x[1]).map(([t, n]) =>
-      `<tr><td>${esc(TYPE[t] || t)}</td><td class="mono">${n}</td><td style="color:var(--muted)">${hintedTypes.has(t) ? "sütun başlığı + hücre taraması" : "hücre içeriği taraması"}</td></tr>`).join("");
+    $("fTotal").textContent = fmt(rep.toplam || 0);
+    $("fRows").textContent = rows ? fmt(rows) : "—";
+    $("fTime").textContent = ((performance.now() - t0) / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 1 }) + " sn";
+    $("fName").innerHTML = `<b style="color:var(--text);font-weight:500">${esc(name)}</b>`;
+    $("fHints").innerHTML = Object.keys(hinted).length ? `Başlıktan tanınan sütunlar: <span class="chips">${Object.keys(hinted).map((h) => `<span class="chip">${esc(h)}</span>`).join("")}</span>` : "";
+    const entries = Object.entries(rep.bulgular || {}).sort((x, y) => catOf(x[0]).rank - catOf(y[0]).rank || y[1] - x[1]);
+    $("fTable").innerHTML = entries.map(([t, n]) => {
+      const c = catOf(t), [sev, cls] = SEV[c.sev];
+      return `<tr><td><span class="badge ${cls}">${sev}</span></td><td>${esc(TYPE[t] || t)}<div class="muted" style="font-size:12px">${c.label}</div></td><td class="val">${fmt(n)}<span class="sm-only"> adet</span></td><td class="hide-sm muted">${hintedTypes.has(t) ? "Sütun başlığı ve hücre taraması" : "Hücre içeriği taraması"}</td></tr>`;
+    }).join("") || `<tr><td colspan="4"><div class="empty" style="padding:8px 0"><b>Hassas veri bulunmadı</b>Dosya değiştirilmeden indirildi.</div></td></tr>`;
     $("fileResult").hidden = false;
   } catch (e) {
-    $("fileErr").textContent = e.message; $("fileErr").hidden = false;
+    $("fileErrText").textContent = e.message === "Failed to fetch" ? "Yerel sunucuya ulaşılamadı." : e.message;
+    $("fileErr").hidden = false;
   } finally {
-    $("dropTitle").textContent = "Dosyayı buraya bırakın veya seçin";
+    $("fileProg").hidden = true;
+    $("dropTitle").textContent = "Dosyayı buraya bırakın";
     $("file").value = "";
   }
 }
 const drop = $("drop");
+drop.onclick = () => $("file").click();
+drop.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } };
 $("file").onchange = (e) => e.target.files[0] && maskFile(e.target.files[0]);
 ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
 ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
@@ -441,19 +726,28 @@ $("input").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrl
 $("reveal").onchange = applyReveal;
 $("unmaskBtn").onclick = unmask;
 $("fakeBtn").onclick = fakeReply;
-$("copyBtn").onclick = () => last && navigator.clipboard.writeText(last.masked);
-$("copyBackBtn").onclick = () => navigator.clipboard.writeText($("restored").dataset.raw || "");
-$("resetBtn").onclick = async () => {
-  await api(`/reset/${SESSION}`, { method: "POST" });
-  last = null; $("results").hidden = true; $("reply").value = "";
-  $("preview").innerHTML = `<span class="empty">Oturum temizlendi; eşleme tablosu bellekten silindi.</span>`;
-  $("outgoing").innerHTML = ""; $("restored").innerHTML = ""; $("copyBackBtn").hidden = true;
+$("reply").addEventListener("input", () => last && setStep(2));
+$("copyBtn").onclick = async () => {
+  if (!last) return;
+  await navigator.clipboard.writeText(last.masked).catch(() => {});
+  $("copyBtn").lastChild.textContent = "Kopyalandı";
+  setTimeout(() => ($("copyBtn").lastChild.textContent = "Kopyala"), 1500);
+  setStep(2);
 };
-$("sample").onchange = (e) => { if (e.target.value) { $("input").value = SAMPLES[e.target.value]; e.target.value = ""; } };
+$("copyBackBtn").onclick = () => navigator.clipboard.writeText($("restored").dataset.raw || "").catch(() => {});
+$("resetBtn").onclick = async () => {
+  await api(`/reset/${SESSION}`, { method: "POST" }).catch(() => {});
+  last = null; $("result").hidden = true; $("reply").value = ""; $("outgoing").innerHTML = "";
+  $("preview").innerHTML = `<div class="empty"><b>Oturum temizlendi</b>Eşleme tablosu bellekten silindi. Önceki etiketler artık geri çevrilemez.</div>`;
+  $("restored").innerHTML = `<div class="empty"><b>Geri çevrilecek cevap yok</b>Geri çevrilen değerler açık mavi zeminle işaretlenir.</div>`;
+  $("copyBackBtn").hidden = true; selectTab(false); setStep(0);
+};
+$("sample").onchange = (e) => { if (e.target.value) { $("input").value = SAMPLES[e.target.value]; e.target.value = ""; $("input").focus(); } };
 $("useLlm").checked = store.get("kalkan.llm") !== "0";
 $("useLlm").onchange = (e) => store.set("kalkan.llm", e.target.checked ? "1" : "0");
 $("input").value = SAMPLES.iade;
-if (store.get("kalkan.view") === "dosya") document.querySelector('[data-view="dosya"]').click();
+
+show(location.hash.slice(1) || store.get("kalkan.view") || "mesaj");
 health(); setInterval(health, 15000);
 </script>
 </body>

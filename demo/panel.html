@@ -3,205 +3,364 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kalkan — Panel</title>
+<title>Kalkan · Genel bakış</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
 <style>
+  /* Tokenlar ve iskelet index.html ile aynıdır. */
   :root {
-    --paper: #f3f1ec; --surface: #fbfaf7; --ink: #1c1b19; --ink-2: #4a4843; --muted: #7a766d;
-    --rule: #dcd7cc; --rule-2: #e8e4db; --link: #2a47b8; --red: #b3261e; --track: #e8e4db;
-    --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --paper: #151513; --surface: #1c1c1a; --ink: #ebe8e1; --ink-2: #c3bfb5; --muted: #8e897f;
-      --rule: #34322e; --rule-2: #2a2926; --link: #8ea4f5; --red: #f08a80; --track: #2a2926;
-    }
+    --bg: #f7f8fa; --surface: #ffffff; --surface-2: #fbfcfd;
+    --navy: #172b4d; --navy-2: #243b53;
+    --teal: #24748a; --teal-soft: #e8f2f5;
+    --text: #1f2937; --text-2: #556377; --text-3: #616f84;
+    --border: #e3e8ef; --border-2: #cdd5df;
+    --success: #25836a; --success-soft: #e6f3ee;
+    --warning: #b9852e; --warning-text: #835c14; --warning-soft: #fbf3e3;
+    --danger: #be4b49; --danger-text: #a63c3a; --danger-soft: #fbeceb;
+    --r: 8px; --r-sm: 6px;
+    --sans: Inter, "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    --ease: 160ms ease;
+    color-scheme: light;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { margin: 0; }
-  body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); }
-  a { color: var(--link); text-decoration: none; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 var(--sans); -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "tnum"; }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
   button, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 4px; }
+  svg.i { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
-  .top { display: flex; align-items: center; gap: 28px; padding: 0 32px; height: 56px; border-bottom: 1px solid var(--rule); background: var(--surface); }
-  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; color: var(--ink); }
-  .nav { display: flex; gap: 2px; height: 100%; }
-  .nav a { display: flex; align-items: center; padding: 0 12px; height: 100%; color: var(--muted); border-bottom: 2px solid transparent; font-size: 14px; }
-  .nav a:hover { color: var(--ink); }
-  .nav .on { color: var(--ink); border-bottom-color: var(--ink); }
-  .updated { margin-left: auto; font: 12px/1 var(--mono); color: var(--muted); }
+  .app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+  .side { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+  .logo { display: flex; align-items: center; gap: 10px; padding: 20px 20px 18px; border-bottom: 1px solid var(--border); color: var(--navy); }
+  .logo:hover { text-decoration: none; }
+  .logo .mark { width: 30px; height: 30px; border-radius: 7px; background: var(--navy); display: grid; place-items: center; }
+  .logo b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+  .logo small { display: block; font-size: 11.5px; color: var(--text-2); line-height: 1.3; }
+  .menu { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .menu .grp { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); padding: 14px 10px 6px; }
+  .menu .grp:first-child { padding-top: 0; }
+  .menu a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r-sm); color: var(--text-2); font-weight: 500; transition: background var(--ease), color var(--ease); }
+  .menu a:hover { background: var(--bg); color: var(--text); text-decoration: none; }
+  .menu a[aria-current="page"] { background: var(--teal-soft); color: var(--navy); }
+  .menu a[aria-current="page"] svg { color: var(--teal); }
+  .env { margin-top: auto; padding: 16px 20px 20px; border-top: 1px solid var(--border); font-size: 12.5px; }
+  .env .t { font-weight: 500; color: var(--text); margin-bottom: 8px; }
+  .env .row { display: flex; align-items: center; gap: 8px; color: var(--text-2); padding: 2px 0; }
+  .env .row span:last-child { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--text); }
+  .env p { margin: 10px 0 0; color: var(--text-3); line-height: 1.5; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-2); flex: none; }
+  .dot.ok { background: var(--success); }
+  .dot.off { background: var(--danger); }
+  .mbar { display: none; }
+  .content { min-width: 0; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 40px 64px; }
 
-  main { max-width: 1120px; margin: 0 auto; padding: 32px 32px 64px; }
-  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 4px; }
-  .lede { color: var(--ink-2); margin: 0 0 28px; max-width: 64ch; }
+  .phead { display: flex; align-items: flex-end; gap: 24px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .phead .crumb { font-size: 12.5px; color: var(--text-3); margin-bottom: 6px; }
+  .phead h1 { font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; color: var(--navy); margin: 0 0 6px; }
+  .phead p { margin: 0; color: var(--text-2); max-width: 68ch; }
+  .phead .actions { margin-left: auto; display: flex; gap: 12px; align-items: center; flex: none; font-size: 12.5px; color: var(--text-3); }
 
-  .hero { display: grid; grid-template-columns: auto 1fr; gap: 6px 22px; align-items: end; padding: 0 0 28px; border-bottom: 1px solid var(--rule); }
-  .hero .big { font-size: 64px; line-height: .95; font-weight: 600; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
-  .hero .txt { color: var(--ink-2); max-width: 36ch; padding-bottom: 6px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: var(--r-sm); border: 1px solid var(--navy); background: var(--navy); color: #fff; font-weight: 500; cursor: pointer; transition: background var(--ease), border-color var(--ease), color var(--ease); white-space: nowrap; }
+  .btn:hover { background: var(--navy-2); border-color: var(--navy-2); }
+  .btn:disabled { opacity: .6; cursor: progress; }
+  .btn.sec { background: var(--surface); color: var(--text); border-color: var(--border-2); }
+  .btn.sec:hover { border-color: var(--navy); color: var(--navy); }
+  .btn.sm { height: 30px; padding: 0 12px; font-size: 13px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+  .note { display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--r); border: 1px solid; font-size: 13.5px; line-height: 1.55; }
+  .note svg { margin-top: 2px; }
+  .note b { display: block; font-weight: 600; margin-bottom: 2px; }
+  .note.danger { background: var(--danger-soft); border-color: #f1d3d2; color: var(--danger-text); }
+  .note.info { background: var(--surface); border-color: var(--border); color: var(--text-2); }
+  .note.info b { color: var(--text); }
+  .note[hidden] { display: none; }
+  .note code { font: 12.5px var(--mono); background: rgba(255, 255, 255, .6); padding: 1px 5px; border-radius: 4px; }
 
-  .figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--rule); }
-  .fig { padding: 18px 20px 18px 0; }
-  .fig + .fig { padding-left: 20px; border-left: 1px solid var(--rule-2); }
-  .fig .n { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-  .fig .k { color: var(--muted); font-size: 13px; }
-  .fig.m6 .n { color: var(--red); }
+  /* Özet */
+  .overview .lead { display: flex; align-items: baseline; gap: 16px; padding: 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .overview .lead strong { font-size: 40px; line-height: 1; font-weight: 600; letter-spacing: -0.03em; color: var(--navy); }
+  .overview .lead span { color: var(--text-2); font-size: 15px; max-width: 52ch; }
+  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .facts div { padding: 18px 24px; }
+  .facts div + div { border-left: 1px solid var(--border); }
+  .facts strong { display: block; font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.015em; }
+  .facts small { color: var(--text-2); font-size: 12.5px; }
+  .facts .m6 strong { color: var(--danger-text); }
 
-  .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 48px; margin-top: 36px; }
-  h2 { font-size: 15px; font-weight: 600; margin: 0 0 14px; }
-  .row { display: grid; grid-template-columns: 150px 1fr 56px; gap: 12px; align-items: center; font-size: 14px; padding: 5px 0; }
-  .row .track { height: 8px; background: var(--track); }
-  .row .fill { height: 100%; background: var(--ink); }
-  .row.m6 .fill { background: var(--red); }
-  .row.m6 .name { color: var(--red); }
-  .row .v { text-align: right; font: 13px var(--mono); color: var(--ink-2); }
-  .empty { color: var(--muted); font-size: 14px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; margin-top: 24px; align-items: start; }
+  .box .bh { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .box .bh h2 { margin: 0; font-size: 14px; font-weight: 600; }
+  .box .bh span { margin-left: auto; font-size: 12.5px; color: var(--text-2); }
+  .box .bb { padding: 16px 20px 20px; }
 
-  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 150px; padding-bottom: 4px; border-bottom: 1px solid var(--rule); }
-  .day { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 6px; }
-  .day .col { width: 100%; max-width: 34px; background: var(--ink); min-height: 2px; }
-  .day .val { font: 12px var(--mono); color: var(--ink-2); }
-  .daylbl { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 6px; font-size: 12px; color: var(--muted); text-align: center; }
+  .trow { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) 48px; gap: 16px; align-items: center; padding: 7px 0; }
+  .trow + .trow { border-top: 1px solid var(--border); }
+  .trow .nm { font-size: 13.5px; }
+  .trow .nm small { display: block; color: var(--text-3); font-size: 11.5px; line-height: 1.3; }
+  .trow .track { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+  .trow .fill { height: 100%; border-radius: 3px; }
+  .trow .v { text-align: right; font: 13px var(--mono); color: var(--text); }
 
-  .dict { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1.3fr; gap: 48px; }
-  .dict p { color: var(--ink-2); margin: 0 0 10px; font-size: 14px; }
-  textarea { width: 100%; min-height: 200px; border: 1px solid var(--rule); background: var(--surface); padding: 12px; font: 14px/1.7 var(--mono); resize: vertical; outline: none; }
-  textarea:focus { border-color: var(--ink); }
-  .actions { display: flex; gap: 14px; align-items: center; margin-top: 10px; }
-  .btn { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 7px 16px; cursor: pointer; font-weight: 500; font-size: 14px; border-radius: 3px; }
-  .btn:hover { opacity: .88; }
-  .saved { font-size: 13px; color: var(--muted); }
+  .chart { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; align-items: end; height: 180px; border-bottom: 1px solid var(--border); padding-top: 12px; }
+  .chart .d { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; height: 100%; }
+  .chart .c { width: 100%; max-width: 30px; border-radius: 3px 3px 0 0; background: var(--teal); min-height: 2px; }
+  .chart .d.today .c { background: var(--navy); }
+  .chart .v { font: 11.5px var(--mono); color: var(--text-2); }
+  .clbl { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 8px; font-size: 12px; color: var(--text-3); text-align: center; }
+  .clbl .today { color: var(--navy); font-weight: 500; }
 
-  .note { margin-top: 48px; font-size: 13px; color: var(--muted); max-width: 72ch; }
+  .empty { display: flex; flex-direction: column; gap: 6px; color: var(--text-2); padding: 8px 0; max-width: 48ch; }
+  .empty b { color: var(--text); font-weight: 500; }
 
-  @media (max-width: 900px) {
-    .top { padding: 0 16px; gap: 14px; }
-    .updated { display: none; }
-    main { padding: 24px 16px 48px; }
-    .hero { grid-template-columns: 1fr; }
-    .hero .big { font-size: 52px; }
-    .figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .fig:nth-child(3) { padding-left: 0; border-left: 0; }
-    .cols, .dict { grid-template-columns: 1fr; gap: 32px; }
-    .row { grid-template-columns: 110px 1fr 44px; }
+  section.sec { margin-top: 40px; scroll-margin-top: 24px; }
+  section.sec > h2 { font-size: 16px; font-weight: 600; color: var(--navy); margin: 0 0 4px; letter-spacing: -0.01em; }
+  section.sec > p { margin: 0 0 16px; color: var(--text-2); max-width: 70ch; }
+  .dict { display: grid; grid-template-columns: minmax(0, 1fr) 280px; }
+  .dict .ed { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+  .dict textarea { flex: 1; min-height: 240px; border: 0; padding: 16px; resize: vertical; background: transparent; font: 13.5px/1.8 var(--mono); outline: none; }
+  .dict textarea::placeholder { color: var(--text-3); }
+  .dict .ft { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface-2); }
+  .dict .ft span { font-size: 12.5px; color: var(--text-2); }
+  .dict aside { padding: 16px 20px; font-size: 13px; color: var(--text-2); }
+  .dict aside b { display: block; color: var(--text); font-weight: 500; margin-bottom: 6px; }
+  .dict aside ul { margin: 0 0 14px; padding-left: 18px; }
+  .dict aside li { margin: 2px 0; }
+  .dict aside code { font: 12.5px var(--mono); color: var(--navy); }
+
+  footer.foot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 24px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-3); }
+
+  @media (max-width: 1080px) { .wrap { padding: 28px 28px 56px; } .grid { grid-template-columns: 1fr; } }
+  @media (max-width: 880px) {
+    .app { grid-template-columns: 1fr; }
+    .side { position: fixed; inset: 0 auto 0 0; width: 272px; z-index: 30; transform: translateX(-100%); transition: transform 200ms ease; }
+    .side.open { transform: none; box-shadow: 0 0 0 100vmax rgba(23, 43, 77, .28); }
+    .mbar { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; }
+    .mbar .logo { padding: 0; border: 0; }
+    .mbar button { margin-left: auto; width: 36px; height: 36px; border: 1px solid var(--border-2); background: var(--surface); border-radius: var(--r-sm); display: grid; place-items: center; cursor: pointer; }
+    .wrap { padding: 20px 16px 48px; }
+    .phead { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .phead .actions { margin-left: 0; }
+    .overview .lead strong { font-size: 34px; }
+    .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .facts div:nth-child(3) { border-left: 0; }
+    .facts div:nth-child(n+3) { border-top: 1px solid var(--border); }
+    .trow { grid-template-columns: minmax(0, 120px) minmax(0, 1fr) 40px; gap: 12px; }
+    .dict { grid-template-columns: 1fr; }
+    .dict .ed { border-right: 0; border-bottom: 1px solid var(--border); }
   }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <a class="brand" href="/">
-    <svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><path d="M10 1 L18.5 4.2 V10.6 C18.5 15.6 14.9 19.4 10 21 C5.1 19.4 1.5 15.6 1.5 10.6 V4.2 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="5.2" y="8.2" width="9.6" height="2.4" fill="currentColor"/><rect x="5.2" y="12.2" width="6" height="2.4" fill="currentColor"/></svg>
-    kalkan
-  </a>
-  <nav class="nav">
-    <a href="/">Mesaj</a>
-    <a href="/" id="fileLink">Dosya</a>
-    <a href="/panel" class="on">Panel</a>
-  </nav>
-  <span class="updated" id="updated"></span>
-</header>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-msg" viewBox="0 0 16 16"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"/><path d="M5 6.2h6M5 8.2h4"/></symbol>
+  <symbol id="i-file" viewBox="0 0 16 16"><path d="M4 1.8h5l3 3v9.4H4z"/><path d="M9 1.8v3h3M6 8.5h4M6 11h4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2.5 13.5h11M4.5 11V7.5M8 11V4M11.5 11V8.8"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M3 2.5h7.5a2 2 0 0 1 2 2v9H5a2 2 0 0 1-2-2z"/><path d="M3 11.5a2 2 0 0 1 2-2h7.5M6 5.5h4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2l6.5 11.5h-13z"/><path d="M8 6.5v3M8 11.6v.1"/></symbol>
+  <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 16 16"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.5v3h-3"/></symbol>
+</svg>
+<template id="logo-mark"><span class="mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="2.2" rx=".6" fill="#fff"/><rect x="2" y="7" width="7.5" height="2.2" rx=".6" fill="#7fb6c5"/><rect x="2" y="11" width="10" height="2.2" rx=".6" fill="#fff"/></svg></span></template>
 
-<main>
-  <h1>Şirket geneli</h1>
-  <p class="lede">Bu sayfa kimin ne yazdığını göstermez. Sunucuda yalnızca veri türü ve sayısı tutulur; mesaj içerikleri ve gerçek değerler hiçbir dosyaya yazılmaz.</p>
+<div class="mbar">
+  <a class="logo" href="/"><span data-logo></span><span><b>Kalkan</b></span></a>
+  <button id="menuBtn" aria-label="Menüyü aç" aria-expanded="false"><svg class="i"><use href="#i-menu"/></svg></button>
+</div>
 
-  <div class="hero">
-    <div class="big" id="today">—</div>
-    <div class="txt">kişisel veri ve ticari sır bugün şirketten çıkmadan durduruldu.</div>
-  </div>
-
-  <div class="figures">
-    <div class="fig"><div class="n" id="total">—</div><div class="k">toplam gizlenen değer</div></div>
-    <div class="fig"><div class="n" id="requests">—</div><div class="k">taranan mesaj ve dosya</div></div>
-    <div class="fig"><div class="n" id="rate">—</div><div class="k">hassas veri içerenlerin oranı</div></div>
-    <div class="fig m6"><div class="n" id="special">—</div><div class="k">özel nitelikli veri (md. 6)</div></div>
-  </div>
-
-  <div class="cols">
-    <section>
-      <h2>Veri türüne göre</h2>
-      <div id="types" class="empty">Yükleniyor…</div>
-    </section>
-    <section>
-      <h2>Son 7 gün</h2>
-      <div class="days" id="days"></div>
-      <div class="daylbl" id="dayLabels"></div>
-    </section>
-  </div>
-
-  <section class="dict">
-    <div>
-      <h2>Şirket sözlüğü</h2>
-      <p>Müşteri firma adları, tedarikçiler, gizli proje adları. Her satıra bir terim yazın; çalışanların mesajlarında ve dosyalarında bu terimler otomatik olarak gizlenir.</p>
-      <p style="color:var(--muted)">Büyük/küçük harf fark etmez.</p>
+<div class="app">
+  <aside class="side" id="side">
+    <a class="logo" href="/"><span data-logo></span><span><b>Kalkan</b><small>KVKK veri koruma</small></span></a>
+    <nav class="menu" aria-label="Ana menü">
+      <div class="grp">Çalışma alanı</div>
+      <a href="/#mesaj"><svg class="i"><use href="#i-msg"/></svg>Mesaj tarama</a>
+      <a href="/#dosya"><svg class="i"><use href="#i-file"/></svg>Dosya gizleme</a>
+      <div class="grp">Yönetim</div>
+      <a href="/panel" id="navOverview" aria-current="page"><svg class="i"><use href="#i-chart"/></svg>Genel bakış</a>
+      <a href="/panel#sozluk" id="navDict"><svg class="i"><use href="#i-book"/></svg>Şirket sözlüğü</a>
+    </nav>
+    <div class="env" aria-live="polite">
+      <div class="t">Yerel ortam</div>
+      <div class="row"><i class="dot" id="dServer"></i><span>Sunucu</span><span id="tServer">—</span></div>
+      <div class="row"><i class="dot" id="dModel"></i><span>Bağlamsal model</span><span id="tModel">—</span></div>
+      <p>Tarama bu bilgisayarda yapılır; gerçek değerler cihazdan çıkmaz.</p>
     </div>
-    <div>
-      <textarea id="sozluk" spellcheck="false" placeholder="Yıldız Lojistik&#10;Proje Anka&#10;Mavi Tekstil"></textarea>
-      <div class="actions"><button class="btn" id="saveBtn">Kaydet</button><span class="saved" id="saved"></span></div>
+  </aside>
+
+  <div class="content">
+    <div class="wrap">
+      <div class="note danger" id="offline" hidden style="margin-bottom:24px">
+        <svg class="i"><use href="#i-alert"/></svg>
+        <div><b>Yerel sunucuya ulaşılamıyor</b>İstatistikler yüklenemedi. Sunucuyu <code>backend</code> klasöründe <code>uvicorn kalkan.api:app --port 8765</code> komutuyla başlatın.</div>
+      </div>
+
+      <header class="phead">
+        <div>
+          <div class="crumb">Yönetim</div>
+          <h1>Genel bakış</h1>
+          <p>Şirket genelinde durdurulan kişisel veri ve ticari bilgi. Bu sayfa kimin ne yazdığını göstermez; sunucuda yalnızca veri türü ve sayısı tutulur.</p>
+        </div>
+        <div class="actions"><span id="updated"></span><button class="btn sec sm" id="refreshBtn"><svg class="i"><use href="#i-refresh"/></svg>Yenile</button></div>
+      </header>
+
+      <div class="panel overview">
+        <div class="lead"><strong id="today">—</strong><span id="todayText">kişisel veri ve ticari bilgi bugün şirket dışına çıkmadan durduruldu.</span></div>
+        <div class="facts">
+          <div><strong id="total">—</strong><small>toplam gizlenen değer</small></div>
+          <div><strong id="requests">—</strong><small>taranan mesaj ve dosya</small></div>
+          <div><strong id="rate">—</strong><small>hassas veri içeren oranı</small></div>
+          <div class="m6"><strong id="special">—</strong><small>özel nitelikli veri (md. 6)</small></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <section class="panel box">
+          <div class="bh"><h2>Veri türüne göre</h2><span>Tüm zamanlar</span></div>
+          <div class="bb" id="types"><div class="empty"><b>Yükleniyor</b></div></div>
+        </section>
+        <section class="panel box">
+          <div class="bh"><h2>Son 7 gün</h2><span>Gizlenen değer sayısı</span></div>
+          <div class="bb">
+            <div class="chart" id="chart" role="img" aria-label="Son 7 günde gizlenen değer sayısı"></div>
+            <div class="clbl" id="chartLbl"></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="sec" id="sozluk">
+        <h2>Şirket sözlüğü</h2>
+        <p>Kişisel veri olmasa da şirket dışına çıkmaması gereken adlar: müşteri firmalar, tedarikçiler, gizli proje adları. Buraya eklenen terimler çalışanların mesajlarında ve dosyalarında otomatik olarak gizlenir.</p>
+        <div class="panel dict">
+          <div class="ed">
+            <label for="dictText" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Sözlük terimleri, her satıra bir terim</label>
+            <textarea id="dictText" spellcheck="false" placeholder="Her satıra bir terim yazın"></textarea>
+            <div class="ft"><button class="btn" id="saveBtn">Kaydet</button><span id="saved" aria-live="polite"></span></div>
+          </div>
+          <aside>
+            <b>Nasıl çalışır</b>
+            <ul>
+              <li>Her satır bir terimdir.</li>
+              <li>Büyük/küçük harf fark etmez.</li>
+              <li>Terimler kelime sınırına göre eşleşir; başka kelimenin parçası olan geçişler gizlenmez.</li>
+            </ul>
+            <b>Örnek</b>
+            <code>Yıldız Lojistik</code><br><code>Proje Anka</code>
+          </aside>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <span>Kalkan · yerel sunucu 127.0.0.1:8765</span>
+        <span>İstatistik dosyası mesaj içeriği veya gerçek değer içermez.</span>
+      </footer>
     </div>
-  </section>
-</main>
+  </div>
+</div>
 
 <script>
 const API = location.origin.startsWith("http") ? location.origin : "http://127.0.0.1:8765";
-const M6 = new Set(["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"]);
 const TYPE = {
-  TC: "T.C. kimlik no", IBAN: "IBAN", KART: "Kart numarası", VKN: "Vergi kimlik no", EPOSTA: "E-posta",
-  TELEFON: "Telefon", PLAKA: "Araç plakası", ADRES: "Adres", KISI: "Kişi adı", KURUM_KISI: "Dolaylı kimlik",
-  SAGLIK: "Sağlık", DIN_INANC: "Din / inanç", SIYASI: "Siyasi görüş", SENDIKA: "Sendika",
-  CEZA: "Ceza / sabıka", BIYOMETRIK: "Biyometrik", TICARI_SIR: "Ticari sır", SOZLUK: "Şirket sözlüğü",
+  TC: "T.C. kimlik numarası", IBAN: "IBAN", KART: "Kart numarası", VKN: "Vergi kimlik numarası",
+  EPOSTA: "E-posta adresi", TELEFON: "Telefon numarası", PLAKA: "Araç plakası", ADRES: "Açık adres",
+  KISI: "Kişi adı", KURUM_KISI: "Dolaylı kimlik bilgisi", SAGLIK: "Sağlık verisi", DIN_INANC: "Din / inanç",
+  SIYASI: "Siyasi görüş", SENDIKA: "Sendika üyeliği", CEZA: "Ceza mahkûmiyeti", BIYOMETRIK: "Biyometrik veri",
+  TICARI_SIR: "Ticari bilgi", SOZLUK: "Şirket sözlüğü terimi",
 };
+const CATS = {
+  m6:     { label: "Özel nitelikli (md. 6)", color: "#be4b49", rank: 0, types: ["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"] },
+  kimlik: { label: "Kimlik / finansal",      color: "#172b4d", rank: 1, types: ["TC", "IBAN", "KART", "VKN"] },
+  kisi:   { label: "Kişi / iletişim",        color: "#24748a", rank: 2, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
+  ticari: { label: "Ticari bilgi",           color: "#b9852e", rank: 3, types: ["TICARI_SIR", "SOZLUK"] },
+};
+const catOf = (t) => Object.values(CATS).find((c) => c.types.includes(t)) || CATS.kisi;
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => new Intl.NumberFormat("tr-TR").format(n || 0);
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 
+document.querySelectorAll("[data-logo]").forEach((el) => el.replaceWith($("logo-mark").content.cloneNode(true)));
+$("menuBtn").onclick = () => { const o = $("side").classList.toggle("open"); $("menuBtn").setAttribute("aria-expanded", String(o)); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("side").classList.remove("open"); });
+document.querySelectorAll(".menu a").forEach((a) => a.addEventListener("click", () => $("side").classList.remove("open")));
+function markNav() {
+  const dict = location.hash === "#sozluk";
+  $("navOverview").toggleAttribute("aria-current", !dict); if (!dict) $("navOverview").setAttribute("aria-current", "page");
+  $("navDict").toggleAttribute("aria-current", dict); if (dict) $("navDict").setAttribute("aria-current", "page");
+}
+window.addEventListener("hashchange", markNav); markNav();
+
+async function health() {
+  try {
+    const h = await (await fetch(API + "/health")).json();
+    $("dServer").className = "dot ok"; $("tServer").textContent = "çalışıyor";
+    $("dModel").className = "dot " + (h.llm ? "ok" : "off"); $("tModel").textContent = h.llm ? h.model : "kapalı";
+  } catch {
+    $("dServer").className = "dot off"; $("tServer").textContent = "kapalı";
+    $("dModel").className = "dot"; $("tModel").textContent = "—";
+  }
+}
+
 async function load() {
   let s;
-  try { s = await (await fetch(API + "/stats")).json(); }
-  catch { $("updated").textContent = "sunucuya ulaşılamıyor"; return; }
+  try { s = await (await fetch(API + "/stats")).json(); $("offline").hidden = true; }
+  catch { $("offline").hidden = false; $("updated").textContent = ""; return; }
+
   $("today").textContent = fmt(s.bugun.toplam);
+  $("todayText").textContent = s.bugun.toplam
+    ? "kişisel veri ve ticari bilgi bugün şirket dışına çıkmadan durduruldu."
+    : "Bugün henüz hassas veri içeren bir mesaj veya dosya taranmadı.";
   $("total").textContent = fmt(s.toplam);
   $("requests").textContent = fmt(s.istek);
   $("rate").textContent = s.istek ? "%" + Math.round((s.korunan_istek / s.istek) * 100) : "—";
   $("special").textContent = fmt(s.ozel_nitelikli);
 
-  const types = Object.entries(s.turler).sort((a, b) => b[1] - a[1]);
+  const types = Object.entries(s.turler).sort((a, b) => catOf(a[0]).rank - catOf(b[0]).rank || b[1] - a[1]);
   const max = Math.max(1, ...types.map(([, n]) => n));
-  $("types").className = types.length ? "" : "empty";
-  $("types").innerHTML = types.length ? types.map(([t, n]) =>
-    `<div class="row${M6.has(t) ? " m6" : ""}"><span class="name">${esc(TYPE[t] || t)}</span><div class="track"><div class="fill" style="width:${(n / max) * 100}%"></div></div><span class="v">${fmt(n)}</span></div>`
-  ).join("") : "Henüz tarama yapılmadı.";
+  $("types").innerHTML = types.length ? types.map(([t, n]) => {
+    const c = catOf(t);
+    return `<div class="trow"><div class="nm">${esc(TYPE[t] || t)}<small>${c.label}</small></div><div class="track"><div class="fill" style="width:${(n / max) * 100}%;background:${c.color}"></div></div><div class="v">${fmt(n)}</div></div>`;
+  }).join("") : `<div class="empty"><b>Henüz tarama yapılmadı</b>Çalışanlar mesaj veya dosya taradıkça veri türleri burada listelenir. <a href="/#mesaj">Bir mesaj tarayın</a></div>`;
 
   const days = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
-    days.push([d, (s.gunluk[d.toLocaleDateString("sv-SE")] || {}).toplam || 0]);
+    days.push([d, (s.gunluk[d.toLocaleDateString("sv-SE")] || {}).toplam || 0, i === 0]);
   }
   const dmax = Math.max(1, ...days.map(([, n]) => n));
-  $("days").innerHTML = days.map(([, n]) =>
-    `<div class="day"><span class="val">${n ? fmt(n) : ""}</span><div class="col" style="height:${(n / dmax) * 110}px"></div></div>`).join("");
-  $("dayLabels").innerHTML = days.map(([d], i) =>
-    `<span>${i === 6 ? "bugün" : d.toLocaleDateString("tr-TR", { weekday: "short" })}</span>`).join("");
-  $("updated").textContent = "güncellendi " + new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  $("chart").innerHTML = days.map(([, n, today]) =>
+    `<div class="d${today ? " today" : ""}"><span class="v">${n ? fmt(n) : ""}</span><div class="c" style="height:${(n / dmax) * 130}px"></div></div>`).join("");
+  $("chartLbl").innerHTML = days.map(([d, , today]) =>
+    `<span class="${today ? "today" : ""}">${today ? "Bugün" : d.toLocaleDateString("tr-TR", { weekday: "short" })}</span>`).join("");
+  $("updated").textContent = "Son güncelleme " + new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
 }
 
-async function loadSozluk() {
-  try { $("sozluk").value = (await (await fetch(API + "/sozluk")).json()).terimler.join("\n"); } catch {}
+async function loadDict() {
+  try { $("dictText").value = (await (await fetch(API + "/sozluk")).json()).terimler.join("\n"); } catch {}
 }
 
 $("saveBtn").onclick = async () => {
-  const terimler = $("sozluk").value.split("\n").map((t) => t.trim()).filter(Boolean);
-  const r = await fetch(API + "/sozluk", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ terimler }) });
-  const s = await r.json();
-  $("sozluk").value = s.terimler.join("\n");
-  $("saved").textContent = `${s.terimler.length} terim kaydedildi`;
+  const btn = $("saveBtn"); btn.disabled = true;
+  try {
+    const terimler = $("dictText").value.split("\n").map((t) => t.trim()).filter(Boolean);
+    const r = await fetch(API + "/sozluk", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ terimler }) });
+    if (!r.ok) throw new Error();
+    const s = await r.json();
+    $("dictText").value = s.terimler.join("\n");
+    $("saved").textContent = `${s.terimler.length} terim kaydedildi.`;
+  } catch { $("saved").textContent = "Kaydedilemedi: yerel sunucuya ulaşılamıyor."; }
+  finally { btn.disabled = false; }
 };
-$("fileLink").onclick = () => { try { localStorage.setItem("kalkan.view", "dosya"); } catch {} };
-document.querySelector('.nav a[href="/"]').onclick = () => { try { localStorage.setItem("kalkan.view", "mesaj"); } catch {} };
+$("refreshBtn").onclick = load;
 
-load(); loadSozluk();
-setInterval(load, 5000);
+load(); loadDict(); health();
+setInterval(load, 10000); setInterval(health, 15000);
 </script>
 </body>
 </html>

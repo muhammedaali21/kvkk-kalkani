@@ -89,11 +89,11 @@
     if (!text.trim()) return;
     busy = true;
     try {
-      toast("🛡️ KVKK Kalkanı mesajı tarıyor…", "info", 15000);
+      toast("Mesaj taranıyor…", "info", 15000);
       const r = await send({ type: "mask", text });
       if (!r || !r.ok) {
         toast(
-          "KVKK Kalkanı sunucusuna ulaşılamadı. Güvenliğiniz için mesaj GÖNDERİLMEDİ. " +
+          "Yerel sunucuya ulaşılamadı; güvenlik gereği mesaj gönderilmedi. " +
             "Sunucuyu başlatın veya eklenti menüsünden korumayı kapatın.",
           "error",
           9000
@@ -113,9 +113,9 @@
         refreshMapping();
         const parts = Object.entries(r.counts).map(([t, n]) => `${n} ${LABELS[t] || t}`);
         const special = r.findings.some((f) => f.special) ? " · KVKK m.6 özel nitelikli veri dahil" : "";
-        toast(`🛡️ ${r.findings.length} hassas veri maskelendi (${parts.join(", ")})${special}`, "ok", 5000);
+        toast(`${r.findings.length} hassas değer gizlendi: ${parts.join(", ")}${special}`, "ok", 5000);
       } else {
-        toast("🛡️ Hassas veri bulunmadı.", "ok", 2000);
+        toast("Hassas veri bulunmadı, mesaj olduğu gibi gönderildi.", "ok", 2000);
       }
       await submit(ed, clickedButton);
     } finally {

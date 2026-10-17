@@ -33,6 +33,8 @@ RAW = ["Ahmet", "12345678950", "TR18", "0532"]
 
 
 def start_server() -> subprocess.Popen:
+    if _port_open():
+        sys.exit("8765 portunda zaten bir sunucu çalışıyor; test kendi sunucusunu yönetir. Önce onu kapatın.")
     env = {**os.environ, "OLLAMA_URL": os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")}
     proc = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "kalkan.api:app", "--host", "127.0.0.1", "--port", "8765"],
