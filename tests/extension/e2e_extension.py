@@ -74,6 +74,33 @@ def type_message(page) -> None:
         page.keyboard.insert_text(line)
 
 
+def paste_screenshot(page) -> None:
+    """Sayfada uydurma bir ekran görüntüsü çizip editöre yapıştırır."""
+    page.evaluate("""async () => {
+        const c = document.createElement('canvas'); c.width = 820; c.height = 90;
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 820, 90);
+        g.fillStyle = '#000'; g.font = '22px Arial';
+        g.fillText('Müşteri: Ahmet Yılmaz', 16, 34);
+        g.fillText('TC 12345678950   Tel 0532 123 45 67', 16, 70);
+        const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+        const dt = new DataTransfer(); dt.items.add(new File([blob], 'ekran.png', { type: 'image/png' }));
+        document.getElementById('prompt-textarea').dispatchEvent(
+            new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+    }""")
+
+
+def ocr_data_url(data_url: str) -> str:
+    import base64
+    import io
+
+    sys.path.insert(0, str(ROOT / "backend"))
+    from PIL import Image
+    from kalkan.images import ocr
+
+    img = Image.open(io.BytesIO(base64.b64decode(data_url.split(",", 1)[1])))
+    return ocr(img)[0]
+
+
 def check_sent(page, n: int) -> str:
     page.wait_for_function(f"window.__sent.length >= {n}", timeout=15000)
     sent = page.evaluate(f"window.__sent[{n - 1}]")
@@ -123,6 +150,24 @@ def main() -> None:
             check_sent(page, 2)
             print("OK  Gönder düğmesi: siteye giden metin maskeli")
 
+            # 3b) Ekran görüntüsü yapıştırma: siteye karartılmış görüntü ulaşır
+            paste_screenshot(page)
+            page.wait_for_function("window.__files.length >= 1", timeout=60000)
+            got = page.evaluate("window.__files[0]")
+            text = ocr_data_url(got["dataUrl"])
+            assert got["name"].endswith("-kalkan.png"), got["name"]
+            assert "12345678950" not in text.replace(" ", "") and "Yılmaz" not in text, text
+            print("OK  Ekran görüntüsü yapıştırma: siteye karartılmış görüntü ulaştı →", " ".join(text.split())[:80])
+
+            # 3c) Dosya seçme düğmesi (ataç)
+            page.set_input_files("#upload", str(ROOT / "ornek" / "ekran_crm.png"))
+            page.wait_for_function("window.__files.length >= 2", timeout=60000)
+            got = page.evaluate("window.__files[1]")
+            text = ocr_data_url(got["dataUrl"])
+            assert got["via"] == "input" and got["name"].endswith("-kalkan.png"), got["name"]
+            assert "10750985038" not in text.replace(" ", "") and "Elif Demir" not in text, text
+            print("OK  Dosya seçme: siteye karartılmış görüntü ulaştı")
+
             # 4) Sunucu kapalıyken mesaj gönderilmez (güvenli taraf)
             server.kill()
             server.wait()
@@ -134,6 +179,14 @@ def main() -> None:
             assert page.evaluate("window.__sent.length") == 2, "Sunucu kapalıyken mesaj gönderildi!"
             print("OK  Sunucu kapalı: mesaj gönderilmedi, kırmızı uyarı →",
                   page.locator(".kvkk-kalkan-toast").inner_text())
+
+            # 4b) Sunucu kapalıyken ekran görüntüsü de eklenmez
+            page.evaluate("document.querySelector('.kvkk-kalkan-toast').dataset.kind = 'x'")
+            paste_screenshot(page)
+            page.wait_for_selector(".kvkk-kalkan-toast[data-kind='error']", timeout=15000)
+            page.wait_for_timeout(500)
+            assert page.evaluate("window.__files.length") == 2, "Sunucu kapalıyken görüntü eklendi!"
+            print("OK  Sunucu kapalı: ekran görüntüsü eklenmedi")
             ctx.close()
     except AssertionError as e:
         ok = False

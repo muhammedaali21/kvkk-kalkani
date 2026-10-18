@@ -222,6 +222,57 @@ def detect_names(text: str) -> list[Finding]:
 
 
 # ---------------------------------------------------------------------------
+# Katman 1e: geliştirici sızıntıları (API anahtarları, şifreler, bağlantı adresleri)
+# ---------------------------------------------------------------------------
+# Yazılımcılar loglarla, yapılandırma dosyalarıyla ve hata çıktılarıyla birlikte anahtar yapıştırır.
+# Bilinen biçimler kesin desenle, genel atamalar ("api_key = ...") bağlamla yakalanır.
+_SECRET_PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("GIZLI_ANAHTAR", re.compile(
+        r"-----BEGIN (?:[A-Z]+ )?PRIVATE KEY(?: BLOCK)?-----[\s\S]+?-----END (?:[A-Z]+ )?PRIVATE KEY(?: BLOCK)?-----")),
+    ("GIZLI_ANAHTAR", re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}")),  # JWT
+    ("GIZLI_ANAHTAR", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")),  # AWS erişim anahtarı
+    ("GIZLI_ANAHTAR", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{30,255}\b|\bgithub_pat_[A-Za-z0-9_]{22,255}\b")),
+    ("GIZLI_ANAHTAR", re.compile(r"\bsk-(?:ant-|proj-|svcacct-|admin-)?[A-Za-z0-9_-]{20,}")),  # OpenAI / Anthropic
+    ("GIZLI_ANAHTAR", re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")),  # Google
+    ("GIZLI_ANAHTAR", re.compile(r"\bxox[abposr]-[A-Za-z0-9-]{10,}\b|https://hooks\.slack\.com/services/[A-Za-z0-9/_-]+")),
+    ("GIZLI_ANAHTAR", re.compile(r"\b(?:sk|rk)_(?:live|test)_[0-9A-Za-z]{16,}\b")),  # Stripe
+    ("BAGLANTI", re.compile(r"\b[a-z][a-z0-9+.-]{1,20}://[^\s:/@'\"]*:[^\s@/'\"]+@[^\s'\"<>]+", re.I)),
+    ("BAGLANTI", re.compile(
+        r"(?i)\b(?:Server|Data Source|Host|Endpoint)=[^;\n]+;[^\n]*?(?:Password|Pwd|AccountKey|SharedAccessKey)=[^;\n]+;?[^\s'\"]*")),
+]
+# Değerin kendisi gizlenir; anahtar adı ("password=") bağlam için kalır.
+# Önek: "smtp_password", "DB_PASSWORD", "db.password" gibi adlar; önek ayraçla bitmeli ki "bypass" eşleşmesin.
+_PREFIX = r"(?<![\w])(?:[A-Za-z0-9]+[_.-])*"
+_SECRET_ASSIGN: list[tuple[str, re.Pattern]] = [
+    ("GIZLI_ANAHTAR", re.compile(r"(?i)\bBearer\s+(?P<v>[A-Za-z0-9._~+/-]{20,}=*)")),
+    ("SIFRE", re.compile(
+        rf"(?i)(?:{_PREFIX}(?:password|passwd|pwd|pass)\b|\b(?:şifre|sifre|parola)(?:si|sı|m|miz|niz|n)?\b)"
+        r"[\"']?\s*(?:[:=]|=>)\s*[\"']?(?P<v>[^\s\"',;}]{4,})")),
+    ("GIZLI_ANAHTAR", re.compile(
+        rf"(?i){_PREFIX}(?:api[_-]?key|apikey|secret(?:[_-]?key)?|client[_-]?secret|access[_-]?token|auth[_-]?token"
+        r"|refresh[_-]?token|private[_-]?key|token|secret_access_key)\b[\"']?\s*(?:[:=]|=>)\s*[\"']?"
+        r"(?P<v>[A-Za-z0-9_\-./+=]{16,})")),
+]
+
+
+def detect_secrets(text: str) -> list[Finding]:
+    out: list[Finding] = []
+    for typ, rx in _SECRET_PATTERNS:
+        for m in rx.finditer(text):
+            out.append(Finding(m.start(), m.end(), typ, m.group(0), "regex"))
+    for typ, rx in _SECRET_ASSIGN:
+        for m in rx.finditer(text):
+            v = m.group("v")
+            # Genel atamalarda yer tutucuları ("<token>", "***", "xxxxx", "${VAR}") atla.
+            if typ == "GIZLI_ANAHTAR" and not (re.search(r"\d", v) and re.search(r"[A-Za-z]", v)):
+                continue
+            if re.fullmatch(r"[*x.\-_<>${}]+|(?i:null|none|true|false|undefined|changeme|password)", v):
+                continue
+            out.append(Finding(m.start("v"), m.end("v"), typ, v, "regex"))
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Katman 1d: form alanları ("Etiket : Değer")
 # ---------------------------------------------------------------------------
 # Resmî yazılarda (SGK, e-Devlet, nüfus, banka formları) değerler etiketle birlikte durur.

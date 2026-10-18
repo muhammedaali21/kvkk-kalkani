@@ -80,11 +80,19 @@ def main() -> None:
     rows = [json.loads(line) for line in data.read_text(encoding="utf-8").splitlines() if line.strip()]
     engine = Engine(Path(tempfile.mkdtemp()))  # istatistik dosyasını kirletme
 
-    modes = ["a", "b"]
-    if "--no-llm" not in sys.argv and llm.available():
+    # --model AD: Gemma katmanında kullanılacak Ollama modeli (ör. gemma4:e2b, kalkan-gemma4-e2b)
+    # --only-llm: yalnızca (c) modu;  --out DOSYA: sonucu başka dosyaya yaz
+    args = sys.argv[1:]
+    if "--model" in args:
+        llm.MODEL = args[args.index("--model") + 1]
+        llm._health_cache = (0.0, False)
+    out_path = ROOT / "benchmark" / (args[args.index("--out") + 1] if "--out" in args else "results.md")
+
+    modes = [] if "--only-llm" in args else ["a", "b"]
+    if "--no-llm" not in args and llm.available():
         modes.append("c")
     else:
-        print("Ollama/Gemma kapalı: (c) modu atlandı.")
+        print(f"Ollama/{llm.text_model()} kullanılamıyor: (c) modu atlandı.")
 
     results = {}
     for m in modes:
@@ -96,7 +104,7 @@ def main() -> None:
     lines = [
         f"# Benchmark results\n",
         f"{len(rows)} synthetic Turkish samples, {sum(len(r['gold']) for r in rows)} gold findings "
-        f"(customer service, HR, legal, mixed, traps). Model: `{llm.MODEL}`.\n",
+        f"(customer service, HR, legal, mixed, traps). Model: `{llm.text_model()}`.\n",
         "## Recall by type (leak prevented)\n", head, sep,
     ]
     for t in TYPE_ORDER:
@@ -116,7 +124,7 @@ def main() -> None:
         "| Avg. time / sample | " + " | ".join(f"{results[m]['ms']:.1f} ms" for m in modes) + " |",
     ]
     report = "\n".join(lines) + "\n"
-    (ROOT / "benchmark" / "results.md").write_text(report, encoding="utf-8")
+    out_path.write_text(report, encoding="utf-8")
     print(report)
 
 

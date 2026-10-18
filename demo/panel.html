@@ -317,12 +317,14 @@ const TYPE = {
   KISI: "Kişi adı", KURUM_KISI: "Dolaylı kimlik bilgisi", SAGLIK: "Sağlık verisi", DIN_INANC: "Din / inanç",
   SIYASI: "Siyasi görüş", SENDIKA: "Sendika üyeliği", CEZA: "Ceza mahkûmiyeti", BIYOMETRIK: "Biyometrik veri",
   TICARI_SIR: "Ticari bilgi", SOZLUK: "Şirket sözlüğü terimi",
+  GIZLI_ANAHTAR: "API anahtarı / token", SIFRE: "Şifre", BAGLANTI: "Bağlantı adresi",
 };
 const CATS = {
   m6:     { label: "Özel nitelikli (md. 6)", color: "#a8413c", rank: 0, types: ["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"] },
   kimlik: { label: "Kimlik / finansal",      color: "#1b1b1a", rank: 1, types: ["TC", "DOGUM_TARIHI", "DOGUM_YERI", "IBAN", "KART", "VKN"] },
-  kisi:   { label: "Kişi / iletişim",        color: "#8a8378", rank: 2, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
-  ticari: { label: "Ticari bilgi",           color: "#a07a3c", rank: 3, types: ["TICARI_SIR", "SOZLUK"] },
+  erisim: { label: "Erişim bilgisi",         color: "#4f5d6b", rank: 2, types: ["GIZLI_ANAHTAR", "SIFRE", "BAGLANTI"] },
+  kisi:   { label: "Kişi / iletişim",        color: "#8a8378", rank: 3, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
+  ticari: { label: "Ticari bilgi",           color: "#a07a3c", rank: 4, types: ["TICARI_SIR", "SOZLUK"] },
 };
 const catOf = (t) => Object.values(CATS).find((c) => c.types.includes(t)) || CATS.kisi;
 const $ = (id) => document.getElementById(id);

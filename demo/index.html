@@ -240,6 +240,14 @@
   .ft-foot .warn { color: var(--danger-text); display: inline-flex; gap: 8px; align-items: center; }
   .ft-foot .acts { margin-left: auto; display: flex; gap: 16px; }
 
+  /* ---------------------------------------------------------------- görüntü önizleme */
+  .pv { display: grid; grid-template-columns: 1fr 1fr; margin-top: 16px; }
+  .pv figure { margin: 0; padding: 14px 16px 16px; min-width: 0; }
+  .pv figure + figure { border-left: 1px solid var(--border); }
+  .pv figcaption { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
+  .pv img { display: block; max-width: 100%; height: auto; border: 1px solid var(--border); }
+  @media (max-width: 880px) { .pv { grid-template-columns: 1fr; } .pv figure + figure { border-left: 0; border-top: 1px solid var(--border); } }
+
   /* ---------------------------------------------------------------- dosya incelemesi */
   .rv-head { display: flex; align-items: flex-end; gap: 24px; padding: 18px 20px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .rv-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
@@ -408,6 +416,7 @@
                   <option value="iade">Müşteri iadesi</option>
                   <option value="ik">Performans notu (İK)</option>
                   <option value="hukuk">Dava özeti (hukuk)</option>
+                  <option value="gelistirici">Hata logu (geliştirici)</option>
                 </select>
               </div>
             </div>
@@ -496,9 +505,9 @@
 
         <div class="drop" id="drop" role="button" tabindex="0" aria-describedby="dropHint">
           <span class="ico"><svg class="i"><use href="#i-up"/></svg></span>
-          <div><b id="dropTitle">Dosyayı buraya bırakın</b><span id="dropHint">Word (.docx), PDF, Excel (.xlsx), CSV veya TXT. Dosya bu bilgisayarda işlenir, hiçbir yere yüklenmez.</span></div>
+          <div><b id="dropTitle">Dosyayı buraya bırakın</b><span id="dropHint">Ekran görüntüsü (PNG, JPG), Word, PDF, Excel, CSV veya TXT. Dosya bu bilgisayarda işlenir, hiçbir yere yüklenmez.</span></div>
           <span class="btn sec">Dosya seç</span>
-          <input type="file" id="file" accept=".docx,.pdf,.xlsx,.csv,.txt" hidden>
+          <input type="file" id="file" accept=".docx,.pdf,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.webp" hidden>
         </div>
         <div class="progress" id="fileProg" hidden><i></i></div>
         <div class="note danger" id="fileErr" hidden style="margin-top:16px"><svg class="i"><use href="#i-alert"/></svg><div><b>Dosya işlenemedi</b><span id="fileErrText"></span></div></div>
@@ -542,6 +551,10 @@
               <a class="btn sec sm" id="fAgain" download><svg class="i"><use href="#i-down"/></svg>Tekrar indir</a>
             </div>
           </div>
+          <div class="panel pv" id="fPreview" hidden>
+            <figure><figcaption>Önce · bu bilgisayarda kalır</figcaption><img id="pvBefore" alt="Orijinal ekran görüntüsü"></figure>
+            <figure><figcaption>Sonra · yapay zekâ aracına gidecek olan</figcaption><img id="pvAfter" alt="Karartılmış ekran görüntüsü"></figure>
+          </div>
           <div class="panel tbl">
             <div class="thead"><h3>Gizlenen veri türleri</h3><span>Dosya indirildi</span></div>
             <div class="tscroll">
@@ -554,7 +567,7 @@
         </div>
 
         <section class="sec">
-          <div class="note info"><svg class="i"><use href="#i-info"/></svg><div><b>Dosya türüne göre</b><b style="font-weight:500;margin-top:8px">Word</b>Paragraflar, tablolar, üst ve alt bilgiler, dipnotlar ve yorumlar taranır; biçimlendirme korunur. E-posta bağlantılarının adresleri ve belgenin yazar bilgisi de temizlenir.<b style="font-weight:500;margin-top:8px">PDF</b>Gizlenen metin dosyadan silinir ve yerine etiketli siyah şerit konur; yalnızca üstü kapatılmaz, seçilip kopyalanamaz. Taranmış (görüntü) PDF'ler bu sürümde desteklenmez.<b style="font-weight:500;margin-top:8px">Excel ve CSV</b>"Ad Soyad", "TC Kimlik", "Telefon", "E-posta", "IBAN" ve "Adres" gibi başlıkların altındaki hücreler içerikleri ne olursa olsun gizlenir; diğer hücreler mesaj taramasındaki katmanlardan geçer.</div></div>
+          <div class="note info"><svg class="i"><use href="#i-info"/></svg><div><b>Dosya türüne göre</b><b style="font-weight:500;margin-top:8px">Ekran görüntüsü</b>Metin OCR ile okunur ve kelimelerin yeri bulunur; Gemma 4 görüntünün kendisine bakarak sağlık, ticari bilgi gibi bağlam gerektiren ifadeleri işaretler. Bulunan değerler siyah kutuyla kapatılır; sonuç tekrar okunarak hiçbir değerin görünür kalmadığı kontrol edilir.<b style="font-weight:500;margin-top:8px">Word</b>Paragraflar, tablolar, üst ve alt bilgiler, dipnotlar ve yorumlar taranır; biçimlendirme korunur. E-posta bağlantılarının adresleri ve belgenin yazar bilgisi de temizlenir.<b style="font-weight:500;margin-top:8px">PDF</b>Gizlenen metin dosyadan silinir ve yerine etiketli siyah şerit konur; yalnızca üstü kapatılmaz, seçilip kopyalanamaz. Taranmış (görüntü) PDF'ler bu sürümde desteklenmez.<b style="font-weight:500;margin-top:8px">Excel ve CSV</b>"Ad Soyad", "TC Kimlik", "Telefon", "E-posta", "IBAN" ve "Adres" gibi başlıkların altındaki hücreler içerikleri ne olursa olsun gizlenir; diğer hücreler mesaj taramasındaki katmanlardan geçer.</div></div>
         </section>
       </div>
 
@@ -577,12 +590,14 @@ const TYPE = {
   KISI: "Kişi adı", KURUM_KISI: "Dolaylı kimlik bilgisi", SAGLIK: "Sağlık verisi", DIN_INANC: "Din / inanç",
   SIYASI: "Siyasi görüş", SENDIKA: "Sendika üyeliği", CEZA: "Ceza mahkûmiyeti", BIYOMETRIK: "Biyometrik veri",
   TICARI_SIR: "Ticari bilgi", SOZLUK: "Şirket sözlüğü terimi",
+  GIZLI_ANAHTAR: "API anahtarı / token", SIFRE: "Şifre", BAGLANTI: "Bağlantı adresi",
 };
 const CATS = {
   m6:     { label: "Özel nitelikli (md. 6)", color: "#a8413c", sev: "high", rank: 0, types: ["SAGLIK", "DIN_INANC", "SIYASI", "SENDIKA", "CEZA", "BIYOMETRIK"] },
   kimlik: { label: "Kimlik / finansal",      color: "#1b1b1a", sev: "high", rank: 1, types: ["TC", "DOGUM_TARIHI", "DOGUM_YERI", "IBAN", "KART", "VKN"] },
-  kisi:   { label: "Kişi / iletişim",        color: "#8a8378", sev: "mid",  rank: 2, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
-  ticari: { label: "Ticari bilgi",           color: "#a07a3c", sev: "mid",  rank: 3, types: ["TICARI_SIR", "SOZLUK"] },
+  erisim: { label: "Erişim bilgisi",         color: "#4f5d6b", sev: "high", rank: 2, types: ["GIZLI_ANAHTAR", "SIFRE", "BAGLANTI"] },
+  kisi:   { label: "Kişi / iletişim",        color: "#8a8378", sev: "mid",  rank: 3, types: ["KISI", "KURUM_KISI", "TELEFON", "EPOSTA", "ADRES", "PLAKA"] },
+  ticari: { label: "Ticari bilgi",           color: "#a07a3c", sev: "mid",  rank: 4, types: ["TICARI_SIR", "SOZLUK"] },
 };
 const catOf = (t) => Object.values(CATS).find((c) => c.types.includes(t)) || CATS.kisi;
 const SEV = { high: ["Yüksek", "high"], mid: ["Orta", "mid"] };
@@ -605,6 +620,15 @@ Sendika üyesi olduğu için yöneticisi Kerem Aksoy çekinceli.
 İletişim: elif.demir@ornekfirma.com.tr, 0544 987 65 43.
 
 Bunu profesyonel bir performans notuna çevir.`,
+  // Sahte anahtarlar parçalı yazılır; gizli anahtar tarayıcıları repoyu gerçek sızıntı sanmasın.
+  gelistirici: `Prod'da şu hata çıkıyor, nedenini bulur musun?
+
+[2026-10-18 02:14:07] ERROR db.connect failed
+DATABASE_URL=postgres://app_user:` + "S3cr3t" + "Pa55" + `@10.0.4.12:5432/musteri_db
+OPENAI_API_KEY=` + "sk-" + "proj-" + "Xq8Lr2mN7vT4kPz9aB3cD6eF1gH5jK0w" + `
+Authorization: Bearer ` + "eyJhbGciOiJIUzI1NiJ9" + "." + "eyJzdWIiOiIxMjM0NTYiLCJyb2xlIjoiYWRtaW4ifQ" + "." + "s1gn4tur3Xyz0123456789abcd" + `
+smtp_password = "` + "Kalkan" + "2026!" + `"
+Hatayı alan müşteri: ahmet.yilmaz@gmail.com`,
   hukuk: `Müvekkilimiz Mehmet Kaya (TC 10000000146) aleyhine açılan alacak davası hakkında.
 Karşı taraf Yıldız Lojistik A.Ş., vergi kimlik no 4840847211.
 Müvekkilin 2019'da dolandırıcılıktan sabıkası var, bunu karşı taraf bilmiyor.
@@ -793,7 +817,8 @@ const fileErr = (e) => {
 const unitOf = (rep) => {
   const sheets = rep.sayfalar ? Object.values(rep.sayfalar) : [rep];
   const rows = sheets.reduce((n, s) => n + (s.satir || 0), 0);
-  return rep.sayfa != null ? [rep.sayfa, "sayfa"] : rep.paragraf != null ? [rep.paragraf, "paragraf"] : [rows, "satır"];
+  return rep.kelime != null ? [rep.kelime, "kelime"] : rep.sayfa != null ? [rep.sayfa, "sayfa"]
+    : rep.paragraf != null ? [rep.paragraf, "paragraf"] : [rows, "satır"];
 };
 
 async function analyzeFile(f) {
@@ -807,6 +832,7 @@ async function analyzeFile(f) {
     const r = await fetch(API + "/analyze-file", { method: "POST", body: fd });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `Sunucu ${r.status} hatası döndürdü.`);
     review = await r.json();
+    review.original = f;  // görüntülerde öncesi/sonrası önizlemesi için
     picked = new Set(review.bulgular.map((b) => b.key));  // güvenli varsayılan: hepsi seçili
     renderReview();
     $("review").hidden = false;
@@ -915,7 +941,14 @@ $("rvApply").onclick = async () => {
 async function showMasked(r, t0) {
   {
     const rep = JSON.parse(r.headers.get("X-Kalkan-Report") || "{}");
-    const url = URL.createObjectURL(await r.blob());
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const isImage = (r.headers.get("Content-Type") || "").startsWith("image/");
+    $("fPreview").hidden = !isImage;
+    if (isImage) {
+      $("pvAfter").src = url;
+      $("pvBefore").src = review && review.original ? URL.createObjectURL(review.original) : "";
+    }
     const name = (r.headers.get("Content-Disposition") || "").match(/filename="(.+)"/)?.[1] || "gizlenmis";
     const a = $("fAgain"); a.href = url; a.download = name; a.click();
 
@@ -924,10 +957,10 @@ async function showMasked(r, t0) {
     const hinted = Object.assign({}, ...sheets.map((s) => s.sutun_ipuclari || {}));
     const hintedTypes = new Set(Object.values(hinted));
     $("fTotal").textContent = fmt(rep.toplam || 0);
-    const isTable = rep.sayfa == null && rep.paragraf == null;
+    const isTable = rep.sayfa == null && rep.paragraf == null && rep.kelime == null;
     // Birim dosya türüne göre: PDF sayfa, Word paragraf, tablo satır.
-    const [unitN, unitLbl] = rep.sayfa != null ? [rep.sayfa, "sayfa işlendi"]
-      : rep.paragraf != null ? [rep.paragraf, "paragraf işlendi"] : [rows, "satır işlendi"];
+    const [unitN, unitName] = unitOf(rep);
+    const unitLbl = unitName === "kelime" ? "kelime okundu (OCR)" : `${unitName} işlendi`;
     $("fRows").textContent = unitN ? fmt(unitN) : "—";
     $("fRowsLbl").textContent = unitLbl;
     $("fileLeak").hidden = !rep.kalan;
@@ -938,7 +971,7 @@ async function showMasked(r, t0) {
     const entries = Object.entries(rep.bulgular || {}).sort((x, y) => catOf(x[0]).rank - catOf(y[0]).rank || y[1] - x[1]);
     $("fTable").innerHTML = entries.map(([t, n]) => {
       const c = catOf(t), [sev, cls] = SEV[c.sev];
-      return `<tr><td><span class="badge ${cls}">${sev}</span></td><td>${esc(TYPE[t] || t)}<div class="muted" style="font-size:12px">${c.label}</div></td><td class="val">${fmt(n)}<span class="sm-only"> adet</span></td><td class="hide-sm muted">${hintedTypes.has(t) ? "Sütun başlığı ve hücre taraması" : isTable ? "Hücre içeriği taraması" : rep.sayfa != null ? "Metin taraması ve karartma" : "Metin taraması"}</td></tr>`;
+      return `<tr><td><span class="badge ${cls}">${sev}</span></td><td>${esc(TYPE[t] || t)}<div class="muted" style="font-size:12px">${c.label}</div></td><td class="val">${fmt(n)}<span class="sm-only"> adet</span></td><td class="hide-sm muted">${hintedTypes.has(t) ? "Sütun başlığı ve hücre taraması" : isTable ? "Hücre içeriği taraması" : rep.kelime != null ? (rep.gorsel_model ? "OCR, Gemma 4 görüntü okuma ve karartma" : "OCR ve karartma") : rep.sayfa != null ? "Metin taraması ve karartma" : "Metin taraması"}</td></tr>`;
     }).join("") || `<tr><td colspan="4"><div class="empty" style="padding:8px 0"><b>Hiçbir değer gizlenmedi</b>Dosya seçiminize göre değiştirilmeden indirildi.</div></td></tr>`;
     $("fileResult").hidden = false;
   }

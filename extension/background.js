@@ -30,6 +30,21 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           body: JSON.stringify({ text: msg.text, session, use_llm: useLlm }),
         });
         sendResponse({ ok: true, ...r });
+      } else if (msg.type === "maskImage") {
+        // Ekran görüntüsü: yerel sunucuda OCR + Gemma 4 ile karartılır, karartılmış PNG geri döner.
+        const { useLlm = true } = await chrome.storage.local.get("useLlm");
+        const blob = await (await fetch(msg.dataUrl)).blob();
+        const fd = new FormData();
+        fd.append("file", blob, msg.name || "ekran.png");
+        fd.append("session", session);
+        fd.append("use_llm", useLlm ? "true" : "false");
+        const r = await fetch(API + "/mask-file", { method: "POST", body: fd });
+        if (!r.ok) throw new Error(`Sunucu hatası: ${r.status}`);
+        const report = JSON.parse(r.headers.get("X-Kalkan-Report") || "{}");
+        const bytes = new Uint8Array(await r.arrayBuffer());
+        let bin = "";
+        for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        sendResponse({ ok: true, dataUrl: "data:image/png;base64," + btoa(bin), report });
       } else if (msg.type === "mapping") {
         sendResponse({ ok: true, mapping: await call(`/mapping/${session}`) });
       } else if (msg.type === "health") {

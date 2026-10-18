@@ -17,6 +17,7 @@ from dataclasses import dataclass
 
 from . import llm
 from .engine import LLM_CAPABLE, PRIORITY, Engine, normalize
+from .images import IMAGE_EXTS, mask_image
 from .names import tr_lower
 
 # Sütun başlığı bu kalıplara uyuyorsa hücrenin tamamı ilgili türle maskelenir.
@@ -55,9 +56,9 @@ class Job:
     phrase_cache: dict | None = None
 
     def mask(self, engine: Engine, text: str, phrases: list[dict] | None = None,
-             use_llm: bool | None = None) -> dict:
+             use_llm: bool | None = None, extra: list | None = None) -> dict:
         r = engine.mask(text, session=self.session, use_llm=self.use_llm if use_llm is None else use_llm,
-                        record=False, phrases=phrases, types=self.types, only=self.only)
+                        record=False, phrases=phrases, types=self.types, only=self.only, extra=extra)
         if self.found is not None:
             self.found += [(f["type"], f["value"]) for f in r["findings"]]
         return r
@@ -169,6 +170,9 @@ def mask_file(engine: Engine, filename: str, data: bytes, session: str,
     elif ext == ".pdf":
         content, report = mask_pdf(engine, data, job)
         media = "application/pdf"
+    elif ext in IMAGE_EXTS:
+        content, report = mask_image(engine, data, job)
+        media = "image/png"
     elif ext == ".doc":
         raise ValueError("Eski Word biçimi (.doc) desteklenmiyor. Dosyayı Word'de .docx olarak kaydedip tekrar yükleyin.")
     else:

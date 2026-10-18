@@ -163,6 +163,106 @@ def test_policy_new_types_default_on():
     assert "DOGUM_TARIHI" in e.policy.types and "IBAN" not in e.policy.types
 
 
+def test_developer_secrets():
+    # Sahte anahtarlar çalışma anında birleştirilir; repoda hazır bir anahtar dizgisi durmaz.
+    j = "".join
+    keys = {
+        "aws": j(["AKIA", "Q3ZXR7VBN2", "KD5TYU"]),
+        "github": j(["gh", "p_", "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"]),
+        "openai": j(["sk-", "proj-", "Xq8Lr2mN7vT4kPz9aB3cD6eF1gH5jK0w"]),
+        "anthropic": j(["sk-", "ant-", "api03-", "Zr7Tq2Lm9Kx4Vb8Nc1Wd6Ys3"]),
+        "google": j(["AIza", "SyB1c2D3e4F5g6H7i8J9k0L1m2N3o4P5q6R"]),
+        "stripe": j(["sk_", "live_", "51Hx2Kq9Lm3Np8Rt"]),
+        "jwt": j(["eyJhbGciOiJIUzI1NiJ9", ".", "eyJzdWIiOiIxMjM0NTYiLCJyb2xlIjoiYWRtaW4ifQ", ".", "s1gn4tur3Xyz0123456789abcd"]),
+    }
+    pem = j(["-----BEGIN ", "RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA7x9Qk2v\nb3Jt12345678950Zq\n", "-----END RSA ", "PRIVATE KEY-----"])
+    text = (
+        f"AWS_ACCESS_KEY_ID={keys['aws']}\n"
+        f"GITHUB_TOKEN={keys['github']}\n"
+        f"OPENAI_API_KEY={keys['openai']}\n"
+        f"anthropic = \"{keys['anthropic']}\"\n"
+        f"maps key: {keys['google']}\n"
+        f"stripe.api_key = '{keys['stripe']}'\n"
+        f"Authorization: Bearer {keys['jwt']}\n"
+        "DATABASE_URL=postgres://app_user:S3cr3tPa55@10.0.4.12:5432/musteri_db\n"
+        "Server=sql01;Database=crm;User Id=sa;Password=Gizli!2026;\n"
+        "smtp_password = \"Kalkan2026!\"\n"
+        "Yöneticinin şifresi: Elazig.2026\n"
+        f"{pem}\n"
+        "api_key = <API_KEY>\napi_key = ${API_KEY}\npassword: ********\npassword=changeme\n"
+    )
+    e = _engine()
+    r = e.mask(text, session="sec", use_llm=False)
+    masked = r["masked"]
+    for name, k in keys.items():
+        assert k not in masked, f"{name} anahtarı açıkta kaldı"
+    for raw in ("S3cr3tPa55", "Gizli!2026", "Kalkan2026!", "Elazig.2026", "MIIEowIBAAK", "12345678950"):
+        assert raw not in masked, raw
+    # Anahtar adı bağlam için kalır, yalnızca değer gizlenir.
+    assert "smtp_password = \"[SIFRE_" in masked and "şifresi: [SIFRE_" in masked, masked
+    # Yer tutucular gizlenmez.
+    for placeholder in ("<API_KEY>", "${API_KEY}", "********", "password=changeme"):
+        assert placeholder in masked, placeholder
+    # PEM içindeki 11 rakam TC sanılıp anahtarı bölmez: blok tek parça gizlenir.
+    assert "[TC_" not in masked and masked.count("[GIZLI_ANAHTAR_") == 8, masked
+    assert {"BAGLANTI", "SIFRE", "GIZLI_ANAHTAR"} <= set(r["counts"]), r["counts"]
+    assert e.unmask(masked, "sec") == text
+
+
+def test_image_grounding_does_not_overreach():
+    # Gemma'dan gelen bir numara OCR kelimelerine bağlanırken başlık satırını ya da komşu sayıları yutmamalı.
+    from kalkan.images import Word, ground_phrases
+    rows = [["Ad", "Soyad", "TC", "Kimlik", "Telefon"], ["Ahmet", "Yılmaz", "12345678950", "0532", "123", "45", "67"]]
+    words, text, pos = [], "", 0
+    for li, row in enumerate(rows):
+        for wi, t in enumerate(row):
+            if wi:
+                text += " "
+                pos += 1
+            words.append(Word(0, 0, 1, 1, t, pos, pos + len(t), li))
+            text += t
+            pos += len(t)
+        text += "\n"
+        pos += 1
+    found = ground_phrases([{"tur": "TC", "ifade": "12345678950"}, {"tur": "TELEFON", "ifade": "0532 123 45 67"},
+                            {"tur": "KISI", "ifade": "Ahmet Yilmaz"}], words, text)
+    got = {f.type: f.value for f in found}
+    assert got == {"TC": "12345678950", "TELEFON": "0532 123 45 67", "KISI": "Ahmet Yılmaz"}, got
+
+
+def test_screenshot_redaction():
+    from kalkan.files import mask_file
+    try:
+        from kalkan.images import _tesseract
+        _tesseract()
+    except Exception:
+        print("  (Tesseract yok — ekran görüntüsü testi atlandı)")
+        return
+    sample = Path(__file__).resolve().parents[2] / "ornek" / "ekran_tablo.png"
+    if not sample.exists():
+        print("  (ornek/ekran_tablo.png yok — python ornek/olustur.py ile üretin; test atlandı)")
+        return
+    e = _engine()
+    found = []
+    _, media, rep = mask_file(e, "ekran.png", sample.read_bytes(), "img", False, found=found, record=False)
+    assert media == "image/png" and rep["kalan"] == 0, rep
+    assert rep["bulgular"] == {"KISI": 3, "TC": 3, "TELEFON": 3, "IBAN": 3}, rep["bulgular"]
+    assert ("IBAN", "TR85 2311 4077 4654 4541 4752 93") in found  # son grup dahil, tam sınır
+
+
+def test_overlap_loser_is_not_dropped():
+    # Model uzun bir SENDIKA ifadesi verir, isim katmanı içinden "Kerem Aksoy"u bulur: isim KISI olur,
+    # cümlenin geri kalanı yine SENDIKA olarak gizlenir; "Sendika üyesi" bilgisi açıkta kalmaz.
+    from kalkan.detectors import Finding
+    e = _engine()
+    text = "Sendika üyesi olduğu için yöneticisi Kerem Aksoy çekinceli."
+    long = "Sendika üyesi olduğu için yöneticisi Kerem Aksoy çekinceli"
+    r = e.mask(text, session="ov", use_llm=False, extra=[Finding(0, len(long), "SENDIKA", long, "llm")])
+    assert "Sendika" not in r["masked"] and "Kerem" not in r["masked"], r["masked"]
+    assert r["counts"] == {"KISI": 1, "SENDIKA": 2}, r["counts"]
+    assert e.unmask(r["masked"], "ov") == text
+
+
 def test_stats_have_no_raw_data():
     e = _engine()
     e.mask(ORNEK, session="x", use_llm=False)

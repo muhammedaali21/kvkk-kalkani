@@ -1,6 +1,6 @@
 # Benchmark results
 
-100 synthetic Turkish samples, 286 gold findings (customer service, HR, legal, mixed, traps). Model: `gemma4`.
+100 synthetic Turkish samples, 286 gold findings (customer service, HR, legal, mixed, traps). Model: `kalkan-gemma4-e2b`.
 
 ## Recall by type (leak prevented)
 
@@ -20,14 +20,14 @@
 | SIYASI | 0% (0/5) | 0% (0/5) | 100% (5/5) |
 | SENDIKA | 0% (0/4) | 0% (0/4) | 100% (4/4) |
 | CEZA | 0% (0/9) | 0% (0/9) | 100% (9/9) |
-| TICARI_SIR | 0% (0/24) | 0% (0/24) | 100% (24/24) |
+| TICARI_SIR | 0% (0/24) | 0% (0/24) | 92% (22/24) |
 
 ## Overall
 
 | Metric | (a) | (b) | (c) |
 |---|---|---|---|
-| Recall | 40% | 65% | 99% |
-| Precision | 100% | 100% | 96% |
-| Unnecessary masks | 0 | 0 | 12 |
-| …of which in trap samples | 0 | 0 | 5 |
-| Avg. time / sample | 0.1 ms | 0.1 ms | 543.4 ms |
+| Recall | 40% | 65% | 98% |
+| Precision | 100% | 100% | 98% |
+| Unnecessary masks | 0 | 0 | 7 |
+| …of which in trap samples | 0 | 0 | 4 |
+| Avg. time / sample | 0.1 ms | 0.1 ms | 538.8 ms |

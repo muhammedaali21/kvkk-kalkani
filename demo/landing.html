@@ -154,8 +154,9 @@
     <nav class="links" aria-label="Sayfa bölümleri">
       <a href="#ne-yapar">Ne yapar</a>
       <a href="#nasil-calisir">Nasıl çalışır</a>
-      <a href="#neden-yerel">Neden yerel</a>
+      <a href="#ekran">Ekran görüntüleri</a>
       <a href="#olcum">Ölçüm</a>
+      <a href="#ince-ayar">İnce ayar</a>
       <a href="#yonetisim">Yönetişim</a>
     </nav>
     <a class="btn-o" href="/uygulama">Uygulamayı aç</a>
@@ -193,14 +194,28 @@
 
   <section class="s" id="nasil-calisir">
     <div class="s-head">
-      <h2>Dört katman,<br><em>tek bir karar.</em></h2>
+      <h2>Altı katman,<br><em>tek bir karar.</em></h2>
       <p>Sayılar kurallarla, bağlam yerel bir dil modeliyle yakalanır. Doğrulamadan geçmeyen sayılar, örneğin sipariş numaraları, maskelenmez. Modelin metinde birebir bulunmayan her çıktısı atılır.</p>
     </div>
     <div class="layers">
       <div class="layer"><span class="n">01</span><h3>Desen ve sağlama</h3><p>T.C. kimlik algoritması, IBAN mod-97, vergi numarası ve Luhn kontrolü; telefon, e-posta, plaka ve açık adres.</p><span class="t">Kural tabanlı</span></div>
       <div class="layer"><span class="n">02</span><h3>Türkçe isim listesi</h3><p>Yaygın Türkçe adlar ve soyadı kalıbı. "Ayşe Hanım" gibi hitaplarda ad gizlenir, hitap bağlam için kalır.</p><span class="t">Kural tabanlı</span></div>
-      <div class="layer"><span class="n">03</span><h3>Şirket sözlüğü</h3><p>Müşteri firmalar, tedarikçiler ve gizli proje adları. Yönetici panelinden girilir.</p><span class="t">Şirkete özel</span></div>
-      <div class="layer"><span class="n">04</span><h3>Gemma 4, yerel</h3><p>Listede olmayan isimler, dolaylı kimlikler, KVKK md. 6 kapsamındaki özel nitelikli veriler ve ticari bilgi. Ollama ile bu bilgisayarda çalışır.</p><span class="t">Açık model</span></div>
+      <div class="layer"><span class="n">03</span><h3>Resmî belge alanları</h3><p>"Adı :", "Baba Adı :", "Doğum Tarihi :" gibi etiketlerin değeri; isim listede olmasa bile etiketi sayesinde gizlenir.</p><span class="t">Kural tabanlı</span></div>
+      <div class="layer"><span class="n">04</span><h3>Geliştirici sızıntıları</h3><p>API anahtarları, token'lar, şifreler ve kullanıcı adı-şifre içeren veritabanı bağlantı adresleri.</p><span class="t">Kural tabanlı</span></div>
+      <div class="layer"><span class="n">05</span><h3>Şirket sözlüğü</h3><p>Müşteri firmalar, tedarikçiler ve gizli proje adları. Yönetici panelinden girilir.</p><span class="t">Şirkete özel</span></div>
+      <div class="layer"><span class="n">06</span><h3>Gemma 4, Türkçe için eğitildi</h3><p>Listede olmayan isimler, dolaylı kimlikler, KVKK md. 6 kapsamındaki özel nitelikli veriler ve ticari bilgi. Türkçe KVKK verisiyle kendi ince ayarladığımız model, bu bilgisayarda çalışır.</p><span class="t">Açık model</span></div>
+    </div>
+  </section>
+
+  <section class="s" id="ekran">
+    <div class="s-head">
+      <h2>Metnin ötesinde:<br><em>ekran görüntüleri.</em></h2>
+      <p>Çalışanlar yalnızca metin yapıştırmıyor; müşteri ekranının ya da Excel tablosunun ekran görüntüsünü de yapıştırıyor. Kalkan görüntüyü sohbet sitesine ulaşmadan önce karartır.</p>
+    </div>
+    <div class="steps3">
+      <div><span class="n">i.</span><h3>OCR yeri bulur</h3><p>Her kelimenin piksel konumu okunur. Kutunun yerini dil modeli değil OCR belirler; birkaç piksellik kayma numaranın yarısını açıkta bırakabilir.</p></div>
+      <div><span class="n">ii.</span><h3>Gemma 4 bağlamı okur</h3><p>Model görüntünün kendisine bakar: "kemoterapi görüyor"un sağlık bilgisi, "özel iskonto %30"un ticari bilgi olduğunu anlar.</p></div>
+      <div><span class="n">iii.</span><h3>Sonuç tekrar okunur</h3><p>Karartılmış görüntü yeniden taranır; gizlenen bir değer hâlâ okunabiliyorsa görüntü gönderilmeden önce uyarılır.</p></div>
     </div>
   </section>
 
@@ -219,9 +234,9 @@
       <p>Müşteri hizmetleri, İK, hukuk ve tuzak örneklerden oluşan 100 sentetik Türkçe metin. Tüm kimlik numaraları algoritmik olarak geçerli ama uydurmadır; gerçek kişi verisi kullanılmadı.</p>
     </div>
     <div class="figs">
-      <div><strong>%99</strong><span>hassas verinin sızması engellendi (recall)</span></div>
-      <div><strong>%96</strong><span>maskelemelerin isabeti (precision)</span></div>
-      <div><strong>%100</strong><span>sağlık, inanç, sendika, ceza ve ticari bilgi</span></div>
+      <div><strong>%98</strong><span>hassas verinin sızması engellendi (recall)</span></div>
+      <div><strong>%98</strong><span>maskelemelerin isabeti (precision)</span></div>
+      <div><strong>%100</strong><span>sağlık, inanç, siyasi görüş, sendika ve ceza bilgisi</span></div>
       <div><strong>~0,5 sn</strong><span>örnek başına, dizüstü bilgisayarda</span></div>
     </div>
     <div class="tscroll">
@@ -230,11 +245,29 @@
         <tbody>
           <tr><td>Yalnızca desen ve sağlama</td><td class="num">%100</td><td class="num">%0</td><td class="num">%0</td><td class="num">%40</td></tr>
           <tr><td>+ Türkçe isim listesi</td><td class="num">%100</td><td class="num">%63</td><td class="num">%0</td><td class="num">%65</td></tr>
-          <tr><td>+ Gemma 4, yerel</td><td class="num">%100</td><td class="num">%97</td><td class="num">%100</td><td class="num">%99</td></tr>
+          <tr><td>+ Gemma 4 E2B, Türkçe ince ayarlı</td><td class="num">%100</td><td class="num">%96</td><td class="num">%97</td><td class="num">%98</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="fine">Gemma'nın 12 gereksiz maskelemesinin çoğu fatura ve bütçe tutarlarının ticari bilgi sanılması; kaçırdığı üç isimden biri ay adıyla aynı olan "Eylül". Model talimatı bu ölçüme göre ayarlanmadı. Şablonla üretilmiş veride yapılandırılmış alanlar gerçek metne göre daha kolaydır.</p>
+    <p class="fine">Model talimatı bu ölçüme göre ayarlanmadı; ince ayar, benchmark'tan tamamen ayrı şablonlarla üretilmiş verilerle yapıldı. Şablonla üretilmiş veride yapılandırılmış alanlar gerçek metne göre daha kolaydır.</p>
+  </section>
+
+  <section class="s" id="ince-ayar">
+    <div class="s-head">
+      <h2>Açık modeli<br><em>Türkçe için eğittik.</em></h2>
+      <p>Kapalı bir API'yi Türkçe KVKK için eğitip çalışanın bilgisayarında çalıştıramazsınız. Biz Gemma 4'ün küçük sürümünü 1.200 sentetik Türkçe örnekle, dizüstü bilgisayardaki 8 GB'lık ekran kartında 33 dakikada eğittik.</p>
+    </div>
+    <div class="tscroll">
+      <table class="cmp">
+        <thead><tr><th>Model</th><th>Recall</th><th>Precision</th><th>Gereksiz maskeleme</th><th>Sağlık</th><th>Ticari bilgi</th><th>Boyut</th></tr></thead>
+        <tbody>
+          <tr><td>Gemma 4 E4B (hazır, büyük)</td><td class="num">%99</td><td class="num">%96</td><td class="num">13</td><td class="num">%100</td><td class="num">%100</td><td class="num">6,6 GB</td></tr>
+          <tr><td>Gemma 4 E2B, ince ayarsız (aynı dönüştürme ve kuantizasyon)</td><td class="num">%87</td><td class="num">%95</td><td class="num">13</td><td class="num">%62</td><td class="num">%33</td><td class="num">4,4 GB</td></tr>
+          <tr><td>Gemma 4 E2B + Kalkan ince ayarı</td><td class="num">%98</td><td class="num">%98</td><td class="num">6</td><td class="num">%100</td><td class="num">%92</td><td class="num">4,4 GB</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fine">Küçük model, iki katı büyüklükteki modelin isabetine ulaştı ve gereksiz maskelemeyi yarıya indirdi. Hız aynı kaldı: cevaplar kısa olduğu için süreyi model boyutu değil sabit ek yük belirliyor. İnce ayar yalnızca metinle yapıldığı için ekran görüntülerinde büyük model kullanılır.</p>
   </section>
 
   <section class="s" id="yonetisim">

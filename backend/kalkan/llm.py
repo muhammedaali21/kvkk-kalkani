@@ -14,7 +14,14 @@ import httpx
 
 from .detectors import Finding
 
-MODEL = os.environ.get("KALKAN_MODEL", "gemma4")
+# "auto": kurulu modeller arasından en iyisi seçilir.
+#   Metin: Türkçe KVKK için ince ayarlı küçük model (finetune/), yoksa gemma4.
+#   Görüntü: gemma4 (e4b); ince ayar yalnızca metinle yapıldığı için görüntüde büyük model daha iyi.
+MODEL = os.environ.get("KALKAN_MODEL", "auto")
+VISION_MODEL = os.environ.get("KALKAN_VISION_MODEL", "auto")
+_TEXT_CANDIDATES = ("kalkan-gemma4-e2b", "gemma4")
+_VISION_CANDIDATES = ("gemma4", "kalkan-gemma4-e2b")
+_installed: list[str] = []
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 TIMEOUT = float(os.environ.get("KALKAN_LLM_TIMEOUT", "60"))
 
@@ -49,16 +56,35 @@ Kurallar:
 Sadece şu JSON'u döndür: {"bulgular": [{"tur": "TUR", "ifade": "metindeki ifade"}]}"""
 
 
+def _is_installed(name: str) -> bool:
+    return any(n == name or n == f"{name}:latest" for n in _installed)
+
+
+def _pick(preference: str, candidates: tuple[str, ...]) -> str:
+    if preference != "auto":
+        return preference
+    return next((c for c in candidates if _is_installed(c)), candidates[-1])
+
+
+def text_model() -> str:
+    return _pick(MODEL, _TEXT_CANDIDATES)
+
+
+def vision_model() -> str:
+    return _pick(VISION_MODEL, _VISION_CANDIDATES)
+
+
 def health(timeout: float = 2) -> dict:
-    """Ollama açık mı ve model yüklü mü?"""
+    """Ollama açık mı ve seçili model kurulu mu?"""
+    global _installed
     try:
         r = httpx.get(f"{OLLAMA_URL}/api/tags", timeout=timeout)
         r.raise_for_status()
-        names = [m.get("name", "") for m in r.json().get("models", [])]
-        ok = any(n == MODEL or n.split(":")[0] == MODEL for n in names)
-        return {"llm": ok, "model": MODEL, "models": names}
+        _installed = [m.get("name", "") for m in r.json().get("models", [])]
+        model = text_model()
+        return {"llm": _is_installed(model), "model": model, "vision_model": vision_model(), "models": _installed}
     except Exception:
-        return {"llm": False, "model": MODEL, "models": []}
+        return {"llm": False, "model": text_model(), "vision_model": vision_model(), "models": []}
 
 
 _health_cache: tuple[float, bool] = (0.0, False)
@@ -105,6 +131,57 @@ def collect_phrases(text: str, chunk_size: int = 3500) -> list[dict] | None:
     return phrases
 
 
+# Görüntüde model numaraları da okur: OCR bir rakamı yanlış okursa (0/O, 1/l) bu ikinci kaynak olur.
+IMAGE_TYPES = LLM_TYPES + ("TC", "IBAN", "TELEFON", "EPOSTA", "KART", "DOGUM_TARIHI")
+
+IMAGE_PROMPT = SYSTEM_PROMPT.replace(
+    "- TC kimlik, IBAN, telefon, e-posta gibi numaraları listeleme; onları başka katman yakalıyor.",
+    "- Bu bir EKRAN GÖRÜNTÜSÜ. Görüntüdeki metni oku. Ek türler: TC (T.C. kimlik no), IBAN, TELEFON, "
+    "EPOSTA, KART (kredi kartı), DOGUM_TARIHI. Bunları da listele.\n"
+    "- \"ifade\" alanına görüntüde yazdığı gibi, birebir aynı karakterlerle yaz.",
+)
+
+
+def detect_image(image_png: bytes, timeout: float | None = None) -> list[dict] | None:
+    """Gemma 4'e ekran görüntüsünü gösterir; hassas ifadelerin listesini döner (konum değil, metin).
+
+    Konumu OCR belirler; model bağlamı okur. Ollama yoksa veya model görüntü desteklemiyorsa None.
+    """
+    import base64
+
+    if not available() or not _is_installed(vision_model()):
+        return None
+    try:
+        r = httpx.post(
+            f"{OLLAMA_URL}/api/chat",
+            json={
+                "model": vision_model(),
+                "stream": False,
+                "format": "json",
+                "think": False,
+                "options": {"temperature": 0},
+                "messages": [
+                    {"role": "system", "content": IMAGE_PROMPT},
+                    {"role": "user", "content": "Bu ekran görüntüsündeki hassas ifadeleri listele.",
+                     "images": [base64.b64encode(image_png).decode()]},
+                ],
+            },
+            timeout=timeout or TIMEOUT * 2,
+        )
+        r.raise_for_status()
+        items = json.loads(r.json()["message"]["content"]).get("bulgular", [])
+    except Exception:
+        return None
+    out = []
+    for item in items if isinstance(items, list) else []:
+        if isinstance(item, dict):
+            typ = str(item.get("tur", "")).strip().upper()
+            phrase = str(item.get("ifade", "")).strip()
+            if typ in IMAGE_TYPES and len(phrase) >= 2:
+                out.append({"tur": typ, "ifade": phrase})
+    return out
+
+
 def _ask(text: str) -> list | None:
     if not text.strip() or not available():
         return None
@@ -112,7 +189,7 @@ def _ask(text: str) -> list | None:
         r = httpx.post(
             f"{OLLAMA_URL}/api/chat",
             json={
-                "model": MODEL,
+                "model": text_model(),
                 "stream": False,
                 "format": "json",
                 # Gemma 4 varsayılan olarak önce uzun bir "düşünme" metni üretir; bu iş için gereksiz ve yavaş.

@@ -156,7 +156,55 @@ def pdf_resmi_belge(path: Path) -> None:
     doc.save(path, garbage=3, deflate=True)
 
 
+# --------------------------------------------------------------------------- Ekran görüntüleri
+def ekran_goruntuleri(folder: Path) -> None:
+    """Ekran yazısı boyutunda (13-14 px) iki uydurma ekran görüntüsü: tablo ve CRM kartı."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    fonts = Path("C:/Windows/Fonts")
+    f = ImageFont.truetype(str(fonts / "segoeui.ttf"), 14)
+    fb = ImageFont.truetype(str(fonts / "segoeuib.ttf"), 14)
+
+    # 1) Excel benzeri tablo
+    cols = [("Ad Soyad", 150), ("TC Kimlik", 120), ("Telefon", 130), ("IBAN", 290), ("Şehir", 90), ("Tutar", 80)]
+    data = [("Ahmet Yılmaz", "12345678950", "0532 123 45 67", "TR18 0006 2001 1900 0006 6723 15", "Elazığ", "1.250"),
+            ("Zeynep Çelik", "10000000146", "0544 987 65 43", "TR85 2311 4077 4654 4541 4752 93", "Ankara", "980"),
+            ("Kerem Aksoy", "29871596580", "0505 222 33 44", "TR80 6256 2023 2375 2698 1867 01", "İzmir", "3.400")]
+    w, rh = sum(c[1] for c in cols) + 40, 28
+    img = Image.new("RGB", (w, 40 + rh * (len(data) + 2)), "white")
+    d = ImageDraw.Draw(img)
+    d.rectangle((0, 0, w, 30), fill=(33, 115, 70))
+    d.text((12, 6), "musteriler.xlsx - Excel", font=fb, fill="white")
+    y = 40
+    for r, row in enumerate([tuple(c[0] for c in cols)] + data):
+        x = 20
+        if r == 0:
+            d.rectangle((20, y, w - 20, y + rh), fill=(230, 230, 230))
+        for (name, cw), val in zip(cols, row):
+            d.rectangle((x, y, x + cw, y + rh), outline=(200, 200, 200))
+            d.text((x + 6, y + 5), val, font=fb if r == 0 else f, fill="black")
+            x += cw
+        y += rh
+    img.save(folder / "ekran_tablo.png")
+
+    # 2) CRM müşteri kartı
+    img = Image.new("RGB", (760, 330), (245, 246, 248))
+    d = ImageDraw.Draw(img)
+    d.rectangle((0, 0, 760, 44), fill=(23, 43, 77))
+    d.text((16, 12), "Müşteri Kartı  ·  CRM", font=fb, fill="white")
+    rows = [("Müşteri", "Elif Demir"), ("T.C. Kimlik No", "10750985038"), ("E-posta", "elif.demir@ornekfirma.com.tr"),
+            ("Telefon", "0544 987 65 43"), ("Adres", "Bahçelievler Mahallesi Menekşe Sk. No: 4 Bursa")]
+    for k, (label, value) in enumerate(rows):
+        d.text((24, 64 + k * 30), label, font=fb, fill=(90, 90, 90))
+        d.text((190, 64 + k * 30), value, font=f, fill="black")
+    d.text((24, 230), "Not:", font=fb, fill=(90, 90, 90))
+    d.text((190, 230), "Müşteri kemoterapi görüyor, teslimatlar kapıya yapılmalı.", font=f, fill="black")
+    d.text((190, 256), "Bu müşteriye özel iskonto %30 uygulanıyor.", font=f, fill="black")
+    img.save(folder / "ekran_crm.png")
+
+
 word_sozlesme(out / "sozlesme.docx")
+ekran_goruntuleri(out)
 pdf_dilekce(out / "dilekce.pdf")
 pdf_resmi_belge(out / "resmi_belge.pdf")
 print("sozlesme.docx, dilekce.pdf ve resmi_belge.pdf oluşturuldu.")

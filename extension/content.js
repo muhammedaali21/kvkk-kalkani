@@ -7,7 +7,7 @@
     TC: "TC", DOGUM_TARIHI: "doğum tarihi", DOGUM_YERI: "doğum yeri", IBAN: "IBAN", KART: "kart", VKN: "vergi no", EPOSTA: "e-posta", TELEFON: "telefon",
     PLAKA: "plaka", ADRES: "adres", KISI: "kişi", KURUM_KISI: "dolaylı kimlik", SAGLIK: "sağlık",
     DIN_INANC: "din/inanç", SIYASI: "siyasi", SENDIKA: "sendika", CEZA: "ceza", BIYOMETRIK: "biyometrik",
-    TICARI_SIR: "ticari sır", SOZLUK: "şirket sözlüğü",
+    TICARI_SIR: "ticari sır", SOZLUK: "şirket sözlüğü", GIZLI_ANAHTAR: "API anahtarı", SIFRE: "şifre", BAGLANTI: "bağlantı adresi",
   };
 
   let enabled = true;
@@ -172,6 +172,117 @@
       e.preventDefault();
       e.stopImmediatePropagation();
       protectAndSend(ed, btn);
+    },
+    true
+  );
+
+  // ---------------------------------------------------------------- ekran görüntüleri
+  // Yapıştırma (Ctrl+V), sürükle-bırak ve dosya seçme yollarıyla eklenen görüntüler yakalanır,
+  // yerel sunucuda karartılır ve sayfaya karartılmış hâli verilir. Sunucuya ulaşılamazsa eklenmez.
+
+  const imagesOf = (list) => [...(list || [])].filter((f) => f && f.type && f.type.startsWith("image/"));
+  const readDataUrl = (file) =>
+    new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = () => res(fr.result);
+      fr.onerror = rej;
+      fr.readAsDataURL(file);
+    });
+  async function toFile(dataUrl, name) {
+    const blob = await (await fetch(dataUrl)).blob();
+    return new File([blob], name, { type: "image/png" });
+  }
+
+  async function redactAll(files) {
+    toast("Ekran görüntüsü taranıyor…", "info", 60000);
+    const out = [];
+    let total = 0, leaked = 0;
+    for (const f of files) {
+      const r = await send({ type: "maskImage", dataUrl: await readDataUrl(f), name: f.name || "ekran.png" });
+      if (!r || !r.ok) {
+        toast("Yerel sunucuya ulaşılamadı; güvenlik gereği görüntü eklenmedi.", "error", 9000);
+        return null;
+      }
+      const base = (f.name || "ekran").replace(/\.[^.]+$/, "");
+      out.push(await toFile(r.dataUrl, `${base}-kalkan.png`));
+      total += r.report.toplam || 0;
+      leaked += r.report.kalan || 0;
+    }
+    if (leaked) toast(`Görüntüde ${leaked} değer karartmadan sonra hâlâ okunabiliyor olabilir; göndermeden önce kontrol edin.`, "error", 9000);
+    else toast(total ? `Ekran görüntüsünde ${total} hassas değer karartıldı.` : "Ekran görüntüsünde hassas veri bulunmadı.", "ok", 5000);
+    return out;
+  }
+
+  function withFiles(files) {
+    const dt = new DataTransfer();
+    files.forEach((f) => dt.items.add(f));
+    return dt;
+  }
+
+  document.addEventListener(
+    "paste",
+    async (e) => {
+      if (!enabled || bypass) return;
+      const files = imagesOf(e.clipboardData && e.clipboardData.files);
+      if (!files.length) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const target = e.target;
+      const out = await redactAll(files);
+      if (!out) return;
+      bypass = true;
+      try {
+        target.dispatchEvent(new ClipboardEvent("paste", { clipboardData: withFiles(out), bubbles: true, cancelable: true }));
+      } finally {
+        bypass = false;
+      }
+    },
+    true
+  );
+
+  document.addEventListener(
+    "drop",
+    async (e) => {
+      if (!enabled || bypass) return;
+      const files = imagesOf(e.dataTransfer && e.dataTransfer.files);
+      if (!files.length) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const target = e.target, x = e.clientX, y = e.clientY;
+      const out = await redactAll(files);
+      if (!out) return;
+      bypass = true;
+      try {
+        target.dispatchEvent(new DragEvent("drop", { dataTransfer: withFiles(out), bubbles: true, cancelable: true, clientX: x, clientY: y }));
+      } finally {
+        bypass = false;
+      }
+    },
+    true
+  );
+
+  document.addEventListener(
+    "change",
+    async (e) => {
+      const input = e.target;
+      if (!enabled || bypass || !(input instanceof HTMLInputElement) || input.type !== "file") return;
+      const all = [...(input.files || [])];
+      if (!imagesOf(all).length) return;
+      e.stopImmediatePropagation();
+      const out = await redactAll(imagesOf(all));
+      if (!out) {
+        input.value = "";
+        return;
+      }
+      const others = all.filter((f) => !f.type.startsWith("image/"));
+      input.files = withFiles([...others, ...out]).files;
+      bypass = true;
+      try {
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      } finally {
+        bypass = false;
+      }
     },
     true
   );

@@ -14,10 +14,13 @@ from datetime import date
 from pathlib import Path
 
 from . import llm
-from .detectors import Finding, detect_dictionary, detect_form_fields, detect_names, detect_regex
+from .detectors import (Finding, detect_dictionary, detect_form_fields, detect_names, detect_regex,
+                        detect_secrets)
 from .names import tr_lower
 
 PRIORITY = {
+    # Erişim bilgileri en üstte: bir anahtarın içindeki 11 rakam TC sanılıp anahtarı bölmesin.
+    "GIZLI_ANAHTAR": 110, "BAGLANTI": 110, "SIFRE": 110,
     "TC": 100, "IBAN": 100, "KART": 100,
     "VKN": 90, "DOGUM_TARIHI": 85, "EPOSTA": 80, "TELEFON": 70, "PLAKA": 60, "DOGUM_YERI": 45,
     "SOZLUK": 50, "ADRES": 40, "KISI": 30,
@@ -34,10 +37,20 @@ LLM_CAPABLE = set(llm.LLM_TYPES)
 TAG_RE = re.compile(r"\[([A-Z][A-Z_]*_\d+)\]")
 _UNICODE_SPACES = re.compile(r"[  -   　]")
 _NUMERIC_TYPES = {"TC", "IBAN", "KART", "VKN", "TELEFON"}
+_EXACT_TYPES = {"GIZLI_ANAHTAR", "SIFRE", "BAGLANTI"}
+
+
+_TRIM = " \t\r\n,.;:()[]'\"-–—"
 
 
 def resolve_overlaps(findings: list[Finding]) -> list[Finding]:
-    """Önceliği yüksek olan kazanır; eşitlikte uzun olan kazanır."""
+    """Önceliği yüksek olan kazanır; eşitlikte uzun olan kazanır.
+
+    Kaybeden bulgu tamamen atılmaz: kazananın dışında kalan kısımları yine gizlenir. Örneğin model
+    "Sendika üyesi olduğu için yöneticisi Kerem Aksoy çekinceli" ifadesini SENDIKA olarak verirse ve isim
+    katmanı "Kerem Aksoy"u bulursa, isim KISI olur, cümlenin geri kalanı SENDIKA olarak kalır.
+    (Fazla karartmak, sızdırmaktan iyidir.)
+    """
     ordered = sorted(
         findings, key=lambda f: (-PRIORITY.get(f.type, 0), -(f.end - f.start), f.start)
     )
@@ -45,12 +58,27 @@ def resolve_overlaps(findings: list[Finding]) -> list[Finding]:
     for f in ordered:
         if f.end <= f.start:
             continue
-        if all(f.end <= t.start or f.start >= t.end for t in taken):
+        clashes = [t for t in taken if f.start < t.end and t.start < f.end]
+        if not clashes:
             taken.append(f)
+            continue
+        segments = [(f.start, f.end)]
+        for t in clashes:
+            segments = [piece for s, e in segments
+                        for piece in ((s, min(e, t.start)), (max(s, t.end), e)) if piece[0] < piece[1]]
+        for s, e in segments:
+            while s < e and f.value[s - f.start] in _TRIM:
+                s += 1
+            while e > s and f.value[e - 1 - f.start] in _TRIM:
+                e -= 1
+            if sum(ch.isalnum() for ch in f.value[s - f.start:e - f.start]) >= 3:
+                taken.append(Finding(s, e, f.type, f.value[s - f.start:e - f.start], f.source))
     return sorted(taken, key=lambda f: f.start)
 
 
 def normalize(typ: str, value: str) -> str:
+    if typ in _EXACT_TYPES:
+        return value.strip()  # anahtarlar ve şifreler büyük/küçük harfe duyarlıdır
     if typ in _NUMERIC_TYPES:
         digits = re.sub(r"[\s\-()]", "", value).upper()
         if typ == "TELEFON":
@@ -142,7 +170,7 @@ class Sozluk:
 
 
 # Politika dosyasının ilk sürümünden sonra eklenen türler (eski kayıtlarda yer almadıkları için açık sayılır).
-_ADDED_LATER = {"DOGUM_TARIHI", "DOGUM_YERI"}
+_ADDED_LATER = {"DOGUM_TARIHI", "DOGUM_YERI", "GIZLI_ANAHTAR", "SIFRE", "BAGLANTI"}
 
 
 class Policy:
@@ -189,7 +217,8 @@ class Engine:
     def detect(self, text: str, use_llm: bool = True, use_names: bool = True,
                use_regex: bool = True, phrases: list[dict] | None = None,
                types: set[str] | None = None,
-               only: set[tuple[str, str]] | None = None) -> tuple[list[Finding], bool]:
+               only: set[tuple[str, str]] | None = None,
+               extra: list[Finding] | None = None) -> tuple[list[Finding], bool]:
         """phrases verilirse model yeniden çağrılmaz; önceden toplanan ifadeler bu metinde eşlenir.
 
         types verilirse yalnızca bu türler gizlenir. Filtre çakışma çözümünden ÖNCE uygulanır; böylece
@@ -204,6 +233,7 @@ class Engine:
         findings: list[Finding] = []
         if use_regex:
             findings += detect_regex(text)
+            findings += detect_secrets(text)
             findings += detect_form_fields(text)
             findings += detect_dictionary(text, self.sozluk.terms)
         if use_names:
@@ -217,6 +247,10 @@ class Engine:
             if llm_findings is not None:
                 llm_used = True
                 findings += llm_findings
+        if extra:
+            # Dışarıdan gelen bulgular (ör. Gemma 4'ün ekran görüntüsünde bulduğu ifadeler) da aynı
+            # filtrelerden ve çakışma çözümünden geçer.
+            findings += extra
         if types is not None:
             findings = [f for f in findings if f.type in types]
         if only is not None:
@@ -243,10 +277,13 @@ class Engine:
     def mask(self, text: str, session: str = "default", use_llm: bool = True,
              record: bool = True, phrases: list[dict] | None = None,
              types: list[str] | set[str] | None = None,
-             only: set[tuple[str, str]] | None = None) -> dict:
+             only: set[tuple[str, str]] | None = None,
+             extra: list[Finding] | None = None) -> dict:
         t0 = time.perf_counter()
         allowed = self.allowed_types(types)
-        findings, llm_used = self.detect(text, use_llm=use_llm, phrases=phrases, types=allowed, only=only)
+        findings, llm_used = self.detect(text, use_llm=use_llm, phrases=phrases, types=allowed, only=only,
+                                         extra=extra)
+        llm_used = llm_used or bool(extra)
         vault = self.vault(session)
         with self.lock:
             tags = [vault.tag_for(f.type, f.value) for f in findings]
